@@ -1,0 +1,4 @@
+bazel-*
+*.o
+*.exe
+*.o.tmp
