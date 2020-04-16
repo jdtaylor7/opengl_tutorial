@@ -9,16 +9,22 @@ CXXFLAGS = -std=c++17 -O2
 LINKOPTS = -L$(gl_lib) -L$(glfw_lib) -lGL -lglfw3 -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11
 includes = -I$(gl_inc) -I$(glad_inc) -I$(glfw_inc)
 
-all: window
+all: window triangle triangle2 shaders
 
 glad.o: $(glad_src)/glad.c
 	clang -c $(CFLAGS) -I$(glad_inc) $^
 
 window: glad.o src/hello_window.cpp
-	clang++ $(CXXFLAGS) $(includes)	$^ -o hello_window.exe $(LINKOPTS)
+	clang++ $(CXXFLAGS) $(includes)	$^ -o window.exe $(LINKOPTS)
 
 triangle: glad.o src/hello_triangle.cpp
-	clang++ $(CXXFLAGS) $(includes)	$^ -o hello_triangle.exe $(LINKOPTS)
+	clang++ $(CXXFLAGS) $(includes)	$^ -o triangle.exe $(LINKOPTS)
+
+triangle2: glad.o src/hello_triangle2.cpp
+	clang++ $(CXXFLAGS) $(includes)	$^ -o triangle2.exe $(LINKOPTS)
+
+shaders: glad.o src/shaders.cpp
+	clang++ $(CXXFLAGS) $(includes)	$^ -o shaders.exe $(LINKOPTS)
 
 clean:
 	rm -vf *.o *.exe *.gch *.exe.stackdump
