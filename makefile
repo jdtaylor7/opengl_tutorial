@@ -9,13 +9,16 @@ CXXFLAGS = -std=c++17 -O2
 LINKOPTS = -L$(gl_lib) -L$(glfw_lib) -lGL -lglfw3 -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11
 includes = -I$(gl_inc) -I$(glad_inc) -I$(glfw_inc)
 
-all: hello_window
+all: window
 
 glad.o: $(glad_src)/glad.c
 	clang -c $(CFLAGS) -I$(glad_inc) $^
 
-hello_window: glad.o src/hello_window.cpp
+window: glad.o src/hello_window.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o hello_window.exe $(LINKOPTS)
 
+triangle: glad.o src/hello_triangle.cpp
+	clang++ $(CXXFLAGS) $(includes)	$^ -o hello_triangle.exe $(LINKOPTS)
+
 clean:
-	rm -vf *.o *.exe *.gch
+	rm -vf *.o *.exe *.gch *.exe.stackdump
