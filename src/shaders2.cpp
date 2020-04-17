@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include <glad/glad.h>
@@ -8,25 +9,23 @@ constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
 const std::vector<float> vertices = {
-     0.5f,  0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-    -0.5f, -0.5f, 0.0f,
-    -0.5f,  0.5f, 0.0f
-};
-
-const std::vector<unsigned int> indices = {
-    0, 1, 3,  // first triangle
-    1, 2, 3   // second triangle
+    // positions         // colors
+     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // bottom left
+     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // top
 };
 
 /*
  * Vertex shader.
  */
 const char* vertex_shader_source = "#version 330 core\n"
-    "layout (location = 0) in vec3 a_pos;\n"
+    "layout (location = 0) in vec3 in_pos;\n"
+    "layout (location = 1) in vec3 in_color;\n"
+    "out vec3 vert_color;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(a_pos.x, a_pos.y, a_pos.z, 1.0);\n"
+    "   gl_Position = vec4(in_pos, 1.0f);\n"
+    "   vert_color = in_color;\n"
     "}\0";
 
 /*
@@ -34,9 +33,10 @@ const char* vertex_shader_source = "#version 330 core\n"
  */
 const char* fragment_shader_source = "#version 330 core\n"
     "out vec4 frag_color;\n"
+    "in vec3 vert_color;\n"
     "void main()\n"
     "{\n"
-    "   frag_color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "   frag_color = vec4(vert_color, 1.0f);\n"
     "}\0";
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -54,7 +54,6 @@ int main()
 {
     unsigned int VAO;
     unsigned int VBO;
-    unsigned int EBO;
     unsigned int vertex_shader;
     unsigned int fragment_shader;
     unsigned int shader_program;
@@ -101,24 +100,19 @@ int main()
     glBindVertexArray(VAO);
 
     // Send vertex data to the vertex shader. Do so by allocating GPU
-    // memory, which is managed by a "vertex buffer object" (VBO). Also send
-    // index data to the vertex shader via an "element buffer object" (EBO).
+    // memory, which is managed by "vertex buffer objects" (VBOs).
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
 
     // Bind VBO to the vertex buffer object, GL_ARRAY_BUFFER. Buffer
     // operations on GL_ARRAY_BUFFER then apply to VBO.
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
-    // Bind EBO to the element buffer object, GL_ELEMENT_ARRAY_BUFFER. Buffer
-    // operations on GL_ELEMENT_ARRAY_BUFFER then apply to EBO.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), indices.data(), GL_STATIC_DRAW);
-
     // Specify vertex data format.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // Can now unbind VAO and VBO, will rebind VAO as necessary in render loop.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -173,26 +167,34 @@ int main()
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
 
-    // Draw in polygon mode.
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     /*
      * Render loop.
      */
     while (!glfwWindowShouldClose(window))
     {
-        // Input.
+        /*
+         * Input.
+         */
         process_input(window);
 
-        // Render.
+        /*
+         * Render.
+         */
+
+        // Color buffer.
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
         glUseProgram(shader_program);
+
+        // Render triangle.
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
 
-        // Swap buffers and poll I/O events.
+        /*
+         * Swap buffers and poll I/O events.
+         */
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -202,7 +204,6 @@ int main()
      */
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
     return 0;
