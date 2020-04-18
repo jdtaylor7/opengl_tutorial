@@ -4,29 +4,17 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
 
 #include "shader.hpp"
 
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/textures1/shader.vs";
-const std::string fragment_shader_path = "src/textures1/shader.fs";
-
-const std::string container_texture_path = "include/textures/container.jpg";
-
 const std::vector<float> vertices = {
-    // positions         // colors          // texture coords
-     0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,  // top right
-     0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  // top left
-};
-
-const std::vector<unsigned int> indices = {
-    0, 1, 3,  // right triangle
-    1, 2, 3,  // left triangle
+    // positions         // colors
+     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // bottom left
+     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // top
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -44,7 +32,6 @@ int main()
 {
     unsigned int VAO;
     unsigned int VBO;
-    unsigned int EBO;
 
     /*
      * GLFW initialization and configuration.
@@ -88,25 +75,17 @@ int main()
     // Send vertex data to the vertex shader. Do so by allocating GPU
     // memory, which is managed by "vertex buffer objects" (VBOs).
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
 
     // Bind VBO to the vertex buffer object, GL_ARRAY_BUFFER. Buffer
     // operations on GL_ARRAY_BUFFER then apply to VBO.
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
-    // Bind EBO to the element buffer object, GL_ELEMENT_ARRAY_BUFFER. Buffer
-    // operations on GL_ELEMENT_ARRAY_BUFFER then apply to EBO.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), indices.data(), GL_STATIC_DRAW);
-
     // Specify vertex data format.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
 
     // Can now unbind VAO and VBO, will rebind VAO as necessary in render loop.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -115,42 +94,7 @@ int main()
     /*
      * Create shader program.
      */
-    Shader shader(vertex_shader_path, fragment_shader_path);
-
-    /*
-     * Create textures.
-     */
-
-    // Create texture ID.
-    unsigned int texture;
-    glGenTextures(1, &texture);
-
-    // Bind the texture as the current GL_TEXTURE_2D.
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    // Set texture wrapping and filtering options.
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Load texture.
-    int width;
-    int height;
-    int num_channels;
-    unsigned char *data = stbi_load(container_texture_path.c_str(), &width, &height, &num_channels, 0);
-
-    // Generate texture.
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Failed to load texture\n";
-    }
+    Shader shader("src/shaders/3/shader.vs", "src/shaders/3/shader.fs");
 
     /*
      * Render loop.
@@ -172,10 +116,9 @@ int main()
 
         shader.use();
 
-        // Render square.
-        glBindTexture(GL_TEXTURE_2D, texture);
+        // Render triangle.
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
 
         /*
