@@ -50,5 +50,8 @@ coordinate_systems1: glad.o stb_image.o src/coordinate_systems/1/coordinate_syst
 coordinate_systems2: glad.o stb_image.o src/coordinate_systems/2/coordinate_systems.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o coordinate_systems2.exe $(LINKOPTS)
 
+coordinate_systems3: glad.o stb_image.o src/coordinate_systems/3/coordinate_systems.cpp
+	clang++ $(CXXFLAGS) $(includes)	$^ -o coordinate_systems3.exe $(LINKOPTS)
+
 clean:
 	rm -vf *.o *.exe *.gch *.exe.stackdump

@@ -14,8 +14,8 @@
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/coordinate_systems/2/shader.vs";
-const std::string fragment_shader_path = "src/coordinate_systems/2/shader.fs";
+const std::string vertex_shader_path = "src/coordinate_systems/3/shader.vs";
+const std::string fragment_shader_path = "src/coordinate_systems/3/shader.fs";
 
 const std::string container_texture_path = "include/textures/container.jpg";
 const std::string face_texture_path = "include/textures/awesomeface.png";
@@ -67,6 +67,19 @@ const std::vector<float> vertices = {
 const std::vector<unsigned int> indices = {
     0, 1, 3,  // right triangle
     1, 2, 3,  // left triangle
+};
+
+const std::vector<glm::vec3> cube_positions = {
+    glm::vec3( 0.0f,  0.0f,  0.0f),
+    glm::vec3( 2.0f,  5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3( 2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f,  3.0f, -7.5f),
+    glm::vec3( 1.3f, -2.0f, -2.5f),
+    glm::vec3( 1.5f,  2.0f, -2.5f),
+    glm::vec3( 1.5f,  0.2f, -1.5f),
+    glm::vec3(-1.3f,  1.0f, -1.5f),
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -274,7 +287,14 @@ int main()
         shader.set_mat4fv("view", view);
         shader.set_mat4fv("projection", projection);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < cube_positions.size(); i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, cube_positions[i]);
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(70 + (20.0f * i)), glm::vec3(0.5f, 1.0f, 0.0f));
+            shader.set_mat4fv("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
         glBindVertexArray(0);
 
         /*
