@@ -35,10 +35,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void process_input(GLFWwindow* window)
+void process_input(GLFWwindow* window, float& mix_val)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        if (mix_val + 0.1f <= 1.0f)
+            mix_val += 0.01f;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        if (mix_val - 0.1f >= 0.0f)
+            mix_val -= 0.01f;
+    }
 }
 
 int main()
@@ -123,14 +135,11 @@ int main()
      */
 
     // Create texture ID.
-    // std::vector<unsigned int> textures;
-    // glGenTextures(2, textures.data());
+    std::vector<unsigned int> textures(2);
+    glGenTextures(2, textures.data());
 
     // Activate a texture unit and bind the texture as the current GL_TEXTURE_2D.
-    // glBindTexture(GL_TEXTURE_2D, textures[0]);
-    unsigned int texture1;
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
 
     // Set texture wrapping and filtering options.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -156,10 +165,7 @@ int main()
         std::cout << "Failed to load texture\n";
     }
 
-    // glBindTexture(GL_TEXTURE_2D, textures[1]);
-    unsigned int texture2;
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -183,6 +189,8 @@ int main()
     shader.use();
     shader.set_int("texture1", 0);
     shader.set_int("texture2", 1);
+    float mix_val = 0.4;
+    shader.set_float("mix_val", mix_val);
 
     /*
      * Render loop.
@@ -192,7 +200,7 @@ int main()
         /*
          * Input.
          */
-        process_input(window);
+        process_input(window, mix_val);
 
         /*
          * Render.
@@ -204,13 +212,12 @@ int main()
 
         // Render square.
         glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, textures[0]);
-        glBindTexture(GL_TEXTURE_2D, texture1);
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
         glActiveTexture(GL_TEXTURE1);
-        // glBindTexture(GL_TEXTURE_2D, textures[1]);
-        glBindTexture(GL_TEXTURE_2D, texture2);
+        glBindTexture(GL_TEXTURE_2D, textures[1]);
 
         shader.use();
+        shader.set_float("mix_val", mix_val);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
