@@ -7,6 +7,7 @@
 #include <string>
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 
 class Shader
 {
@@ -14,9 +15,11 @@ public:
     Shader(const std::string& vertex_path, const std::string& fragment_path);
 
     void use();
-    void set_bool(const std::string &name, bool value) const;
-    void set_int(const std::string &name, int value) const;
-    void set_float(const std::string &name, float value) const;
+
+    void set_bool(const std::string& name, bool value) const;
+    void set_int(const std::string& name, int value) const;
+    void set_float(const std::string& name, float value) const;
+    void set_mat4fv(const std::string& name, const glm::mat4& transform);
 private:
     unsigned int id;
 };
@@ -111,19 +114,24 @@ void Shader::use()
     glUseProgram(id);
 }
 
-void Shader::set_bool(const std::string &name, bool value) const
+void Shader::set_bool(const std::string& name, bool value) const
 {
     glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
 }
 
-void Shader::set_int(const std::string &name, int value) const
+void Shader::set_int(const std::string& name, int value) const
 {
     glUniform1i(glGetUniformLocation(id, name.c_str()), value);
 }
 
-void Shader::set_float(const std::string &name, float value) const
+void Shader::set_float(const std::string& name, float value) const
 {
     glUniform1f(glGetUniformLocation(id, name.c_str()), value);
+}
+
+void Shader::set_mat4fv(const std::string& name, const glm::mat4& transform)
+{
+    glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, glm::value_ptr(transform));
 }
 
 #endif /* SHADER_HPP */

@@ -2,11 +2,12 @@ gl = third_party/GL
 glad = third_party/glad
 glfw = third_party/glfw-3.3.2
 stb = third_party/stb_image
+glm = third_party/glm-0.9.9.8
 
 CFLAGS = -O2
 CXXFLAGS = -std=c++17 -O2
 LINKOPTS = -L$(gl)/lib -L$(glfw)/build/lib -lGL -lglfw3 -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11
-includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -Iinclude
+includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) -Iinclude
 
 all: window triangle triangle2 shaders1
 
@@ -39,6 +40,9 @@ textures1: glad.o stb_image.o src/textures/1/textures1.cpp
 
 textures2: glad.o stb_image.o src/textures/2/textures2.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o textures2.exe $(LINKOPTS)
+
+transformations: glad.o stb_image.o src/transformations/transformations.cpp
+	clang++ $(CXXFLAGS) $(includes)	$^ -o transformations.exe $(LINKOPTS)
 
 clean:
 	rm -vf *.o *.exe *.gch *.exe.stackdump
