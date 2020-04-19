@@ -44,14 +44,17 @@ textures2: glad.o stb_image.o src/textures/2/textures2.cpp
 transformations: glad.o stb_image.o src/transformations/transformations.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o transformations.exe $(LINKOPTS)
 
-coordinate_systems1: glad.o stb_image.o src/coordinate_systems/1/coordinate_systems.cpp
+coordinate_systems1: glad.o stb_image.o src/coordinate_systems/1/coordinate_systems1.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o coordinate_systems1.exe $(LINKOPTS)
 
-coordinate_systems2: glad.o stb_image.o src/coordinate_systems/2/coordinate_systems.cpp
+coordinate_systems2: glad.o stb_image.o src/coordinate_systems/2/coordinate_systems2.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o coordinate_systems2.exe $(LINKOPTS)
 
-coordinate_systems3: glad.o stb_image.o src/coordinate_systems/3/coordinate_systems.cpp
+coordinate_systems3: glad.o stb_image.o src/coordinate_systems/3/coordinate_systems3.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o coordinate_systems3.exe $(LINKOPTS)
+
+camera1: glad.o stb_image.o src/camera/1/camera1.cpp
+	clang++ $(CXXFLAGS) $(includes)	$^ -o camera1.exe $(LINKOPTS)
 
 clean:
 	rm -vf *.o *.exe *.gch *.exe.stackdump
