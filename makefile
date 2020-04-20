@@ -56,5 +56,8 @@ coordinate_systems3: glad.o stb_image.o src/coordinate_systems/3/coordinate_syst
 camera1: glad.o stb_image.o src/camera/1/camera1.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o camera1.exe $(LINKOPTS)
 
+camera2: glad.o stb_image.o src/camera/2/camera2.cpp
+	clang++ $(CXXFLAGS) $(includes)	$^ -o camera2.exe $(LINKOPTS)
+
 clean:
 	rm -vf *.o *.exe *.gch *.exe.stackdump
