@@ -1,5 +1,8 @@
 bazel-*
+build
+
 *.o
 *.exe
 *.o.tmp
 *.exe.stackdump
+*.map

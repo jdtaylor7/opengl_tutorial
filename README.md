@@ -1,4 +1,5 @@
-Learning how to use OpenGL! Following the LearnOpenGL tutorial [here](https://learnopengl.com/).
+Learning how to use OpenGL! Following the LearnOpenGL tutorial
+[here](https://learnopengl.com/).
 
 ### Cygwin packages to build GLFW
 * libX11-devel
@@ -38,7 +39,8 @@ Learning how to use OpenGL! Following the LearnOpenGL tutorial [here](https://le
 or `startx`
 * Can also use `startxwin <executable>` to run single client program in
 multiwindow mode
-* [Documentation](http://x.cygwin.com/docs/ug/using.html#using-starting) on Cygwin site
+* [Documentation](http://x.cygwin.com/docs/ug/using.html#using-starting) on
+Cygwin site
 
 ### Nvidia drivers? --> don't need them yet at least
 * libOpenCL-devel?
@@ -80,3 +82,45 @@ acceleration rendering
 * Some GLFW examples don't work properly
     * `opacity.exe`
     * maybe others
+
+### Configuring OpenGL with CMake
+
+##### Option 1 (preferred): Use CMake package
+`find_package(OpenGL REQUIRED)`
+`target_link_libraries(<executable> OpenGL::GL)`
+
+##### Option 2: Find and install library
+`set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}
+-L${PROJECT_SOURCE_DIR}/third_party/GL/lib -lGL")`
+`find_library(GL_lib GL ${PROJECT_SOURCE_DIR}/third_party/GL/lib)`
+`target_link_libraries(<executable> ${GL_lib})`
+
+### Installing GLFW to work with CMake
+
+##### Option 1 (preferred): Use CMake package
+Build and install glfw with CMake.
+* Download glfw source code.
+* Create build directory: `mkdir <install dir>` (for my Cygwin system I used
+`/usr/lib/glfw`)
+* In root directory: `cmake
+-B build
+-DCMAKE_INSTALL_PREFIX=<install dir>
+-DGLFW_BUILD_DOCS=OFF
+-DGLFW_BUILD_EXAMPLES=OFF
+-DGLFW_BUILD_TESTS=OFF
+-DBUILD_SHARED_LIBS=OFF`
+* `cd build`
+* `make glfw`
+* `make install`
+
+Find the glfw package. Must be version 3.2 or later since that version was the
+first to include the option to create a CMake package.
+`find_package(glfw3 3.3 REQUIRED)`
+`target_link_libraries(<executable> glfw)`
+
+##### Option 2: Find and install library
+`set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}
+-L${PROJECT_SOURCE_DIR}/third_party/glfw-<version>/build/lib -lGL")`
+`find_library(glfw3_lib glfw3
+${PROJECT_SOURCE_DIR}/third_party/glfw-<version>/build/lib)`
+`target_link_libraries(<executable> ${glfw3_lib})`
