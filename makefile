@@ -5,11 +5,11 @@ ifeq ($(UNAME_S), Linux)
 endif
 
 # Detect architecture for Linux.
-UNAME_P := $(shell uname -p)
-ifeq ($(UNAME_P), x86_64)
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M), x86_64)
 	CFLAGS += -D AMD64
 endif
-ifeq ($(filter %86, $(UNAME_P)),)
+ifneq ($(filter %86, $(UNAME_M)),)
 	CFLAGS += -D IA32
 endif
 
