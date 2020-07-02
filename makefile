@@ -2,9 +2,11 @@
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
 	CFLAGS += -D LINUX
+	LINKOPTS += -L$(glfw)/lib/linux
 else
 	# TODO update this with cygwin
 	CFLAGS += -D CYGWIN
+	LINKOTPS += -L$(glfw)/lib/cygwin
 endif
 
 # Detect architecture for Linux.
@@ -27,14 +29,6 @@ CXX = clang++
 CFLAGS += -O2
 CXXFLAGS = $(CFLAGS) -std=c++17
 LINKOPTS = -L$(gl)/lib
-
-ifeq ($(UNAME_S), Linux)
-	LINKOPTS += -L$(glfw)/lib/linux
-else
-	# TODO update this with cygwin
-	LINKOTPS += -L$(glfw)/lib/cygwin
-endif
-
 LINKOPTS += -lGL -lglfw3 -Wl,-Bstatic -lrt -Wl,-Bdynamic -lm -ldl -lX11 -lpthread
 includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) -Iinclude
 
