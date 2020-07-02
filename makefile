@@ -2,6 +2,9 @@
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
 	CFLAGS += -D LINUX
+else
+	# TODO update this with cygwin
+	CFLAGS += -D CYGWIN
 endif
 
 # Detect architecture for Linux.
@@ -23,10 +26,19 @@ CC = clang
 CXX = clang++
 CFLAGS += -O2
 CXXFLAGS = $(CFLAGS) -std=c++17
-LINKOPTS = -L$(gl)/lib -L$(glfw)/build/lib -lGL -lglfw3 -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11
+LINKOPTS = -L$(gl)/lib
+
+ifeq ($(UNAME_S), Linux)
+	LINKOPTS += -L$(glfw)/lib/linux
+else
+	# TODO update this with cygwin
+	LINKOTPS += -L$(glfw)/lib/cygwin
+endif
+
+LINKOPTS += -lGL -lglfw3 -Wl,-Bstatic -lrt -Wl,-Bdynamic -lm -ldl -lX11 -lpthread
 includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) -Iinclude
 
-all: window triangle triangle2 shaders1
+all: window triangle1 camera2
 
 glad.o: $(glad)/src/glad.c
 	$(CC) -c $(CFLAGS) $(includes) $^
