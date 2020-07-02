@@ -28,8 +28,7 @@ CC = clang
 CXX = clang++
 CFLAGS += -O2
 CXXFLAGS = $(CFLAGS) -std=c++17
-LINKOPTS = -L$(gl)/lib
-LINKOPTS += -lGL -lglfw3 -Wl,-Bstatic -lrt -Wl,-Bdynamic -lm -ldl -lX11 -lpthread
+LINKOPTS += -L$(gl)/lib -lGL -lglfw3 -Wl,-Bstatic -lrt -Wl,-Bdynamic -lm -ldl -lX11 -lpthread
 includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) -Iinclude
 
 all: window triangle1 camera2
