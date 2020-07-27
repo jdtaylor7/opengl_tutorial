@@ -38,6 +38,9 @@ message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 add_library(glad OBJECT third_party/glad/src/glad.c)
 add_library(stb_image OBJECT third_party/stb_image/stb_image.c)
 
+# Link libraries for future targets. Just lazily linking them all here.
+link_libraries(glad stb_image glfw)
+
 # Add executables.
 add_executable(window src/getting_started/hello_window/hello_window.cpp)
 
@@ -60,24 +63,4 @@ add_executable(coordinate_systems3 src/getting_started/coordinate_systems/3/coor
 add_executable(camera1 src/getting_started/camera/1/camera1.cpp)
 add_executable(camera2 src/getting_started/camera/2/camera2.cpp)
 
-# Link libraries.
-target_link_libraries(window glad glfw)
-
-target_link_libraries(triangle1 glad glfw)
-target_link_libraries(triangle2 glad glfw)
-
-target_link_libraries(shaders1 glad glfw)
-target_link_libraries(shaders2 glad glfw)
-target_link_libraries(shaders3 glad glfw)
-
-target_link_libraries(textures1 glad stb_image glfw)
-target_link_libraries(textures2 glad stb_image glfw)
-
-target_link_libraries(transformations glad stb_image glfw)
-
-target_link_libraries(coordinate_systems1 glad stb_image glfw)
-target_link_libraries(coordinate_systems2 glad stb_image glfw)
-target_link_libraries(coordinate_systems3 glad stb_image glfw)
-
-target_link_libraries(camera1 glad stb_image glfw)
-target_link_libraries(camera2 glad stb_image glfw)
+add_executable(colors1 src/lighting/colors/1/colors1.cpp)
