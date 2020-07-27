@@ -14,8 +14,8 @@
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/coordinate_systems/1/shader.vs";
-const std::string fragment_shader_path = "src/coordinate_systems/1/shader.fs";
+const std::string vertex_shader_path = "src/getting_started/coordinate_systems/1/shader.vs";
+const std::string fragment_shader_path = "src/getting_started/coordinate_systems/1/shader.fs";
 
 const std::string container_texture_path = "include/textures/container.jpg";
 const std::string face_texture_path = "include/textures/awesomeface.png";

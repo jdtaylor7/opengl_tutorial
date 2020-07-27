@@ -94,7 +94,7 @@ int main()
     /*
      * Create shader program.
      */
-    Shader shader("src/shaders/3/shader.vs", "src/shaders/3/shader.fs");
+    Shader shader("src/getting_started/shaders/3/shader.vs", "src/getting_started/shaders/3/shader.fs");
 
     /*
      * Render loop.

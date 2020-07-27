@@ -14,30 +14,11 @@
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/camera/2/shader.vs";
-const std::string fragment_shader_path = "src/camera/2/shader.fs";
+const std::string vertex_shader_path = "src/getting_started/coordinate_systems/2/shader.vs";
+const std::string fragment_shader_path = "src/getting_started/coordinate_systems/2/shader.fs";
 
 const std::string container_texture_path = "include/textures/container.jpg";
 const std::string face_texture_path = "include/textures/awesomeface.png";
-
-glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
-
-float delta_time = 0.0f;
-float last_frame = 0.0f;
-
-float lastx = SCREEN_WIDTH / 2;
-float lasty = SCREEN_HEIGHT / 2;
-
-constexpr float mouse_sensitivity = 0.05f;
-
-float yaw = -90.0f;
-float pitch = 0.0f;
-
-bool first_mouse = true;
-
-float fov = 45.0f;
 
 const std::vector<float> vertices = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -88,80 +69,27 @@ const std::vector<unsigned int> indices = {
     1, 2, 3,  // left triangle
 };
 
-const std::vector<glm::vec3> cube_positions = {
-    glm::vec3( 0.0f,  0.0f,  0.0f),
-    glm::vec3( 2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3( 2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3( 1.3f, -2.0f, -2.5f),
-    glm::vec3( 1.5f,  2.0f, -2.5f),
-    glm::vec3( 1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f),
-};
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void process_input(GLFWwindow* window)
+void process_input(GLFWwindow* window, float& mix_val)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    float camera_speed = 2.5f * delta_time;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera_pos += camera_speed * camera_front;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera_pos -= camera_speed * camera_front;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    if (first_mouse)
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
-        lastx = xpos;
-        lasty = ypos;
-        first_mouse = false;
+        if (mix_val + 0.1f <= 1.0f)
+            mix_val += 0.01f;
     }
 
-    float xoffset = xpos - lastx;
-    float yoffset = lasty - ypos;
-    lastx = xpos;
-    lasty = ypos;
-
-    xoffset *= mouse_sensitivity;
-    yoffset *= mouse_sensitivity;
-
-    yaw += xoffset;
-    pitch += yoffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    camera_front = glm::normalize(direction);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    fov -= yoffset;
-
-    if (fov <= 1.0f)
-        fov = 1.0f;
-    else if (fov >= 45.0f)
-        fov = 45.0f;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        if (mix_val - 0.1f >= 0.0f)
+            mix_val -= 0.01f;
+    }
 }
 
 int main()
@@ -190,9 +118,6 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
 
     /*
      * Load OpenGL function pointers.
@@ -297,10 +222,16 @@ int main()
         std::cout << "Failed to load texture\n";
     }
 
+    /*
+     * Initialize mix value.
+     */
+    float mix_val = 0.4;
+
     // Set uniforms.
     shader.use();
     shader.set_int("texture1", 0);
     shader.set_int("texture2", 1);
+    shader.set_float("mix_val", mix_val);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -309,14 +240,10 @@ int main()
      */
     while (!glfwWindowShouldClose(window))
     {
-        float current_frame = glfwGetTime();
-        delta_time = current_frame - last_frame;
-        last_frame = current_frame;
-
         /*
          * Input.
          */
-        process_input(window);
+        process_input(window, mix_val);
 
         /*
          * Render.
@@ -338,22 +265,16 @@ int main()
         glm::mat4 projection = glm::mat4(1.0f);
 
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-        projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
         shader.use();
+        shader.set_float("mix_val", mix_val);
         shader.set_mat4fv("model", model);
         shader.set_mat4fv("view", view);
         shader.set_mat4fv("projection", projection);
         glBindVertexArray(VAO);
-        for (unsigned int i = 0; i < cube_positions.size(); i++)
-        {
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, cube_positions[i]);
-            model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(0.5f, 1.0f, 0.0f));
-            shader.set_mat4fv("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
 
         /*
