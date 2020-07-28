@@ -14,14 +14,14 @@
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/lighting/colors/1/shader.vs";
-const std::string fragment_shader_path = "src/lighting/colors/1/shader.fs";
+const std::string vertex_shader_path = "src/lighting/colors/shader.vs";
+const std::string fragment_shader_path = "src/lighting/colors/shader.fs";
 
-const std::string light_source_vertex_shader_path = "src/lighting/colors/1/light_source_shader.vs";
-const std::string light_source_fragment_shader_path = "src/lighting/colors/1/light_source_shader.fs";
+const std::string light_source_vertex_shader_path = "src/lighting/colors/light_source_shader.vs";
+const std::string light_source_fragment_shader_path = "src/lighting/colors/light_source_shader.fs";
 
-glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 5.0f);
+glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;

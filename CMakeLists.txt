@@ -63,4 +63,4 @@ add_executable(coordinate_systems3 src/getting_started/coordinate_systems/3/coor
 add_executable(camera1 src/getting_started/camera/1/camera1.cpp)
 add_executable(camera2 src/getting_started/camera/2/camera2.cpp)
 
-add_executable(colors1 src/lighting/colors/1/colors1.cpp)
+add_executable(colors src/lighting/colors/colors.cpp)
