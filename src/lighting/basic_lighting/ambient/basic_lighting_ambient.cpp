@@ -20,8 +20,8 @@ const std::string fragment_shader_path = "src/lighting/basic_lighting/ambient/sh
 const std::string light_source_vertex_shader_path = "src/lighting/basic_lighting/ambient/light_source_shader.vs";
 const std::string light_source_fragment_shader_path = "src/lighting/basic_lighting/ambient/light_source_shader.fs";
 
-glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 5.0f);
-glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 camera_pos = glm::vec3(1.2f, 1.2f, 3.9f);
+glm::vec3 camera_front = glm::vec3(-0.234f, -0.256f, -0.937f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;
@@ -32,8 +32,8 @@ float lasty = SCREEN_HEIGHT / 2;
 
 constexpr float mouse_sensitivity = 0.05f;
 
-float yaw = -90.0f;
-float pitch = 0.0f;
+float yaw = -104.0f;
+float pitch = -15.0f;
 
 bool first_mouse = true;
 
@@ -110,6 +110,15 @@ void process_input(GLFWwindow* window)
         camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        std::cout << "camera_front: " << camera_front.x << ", " << camera_front.y << ", " << camera_front.z << '\n';
+        std::cout << "camera_pos: " << camera_pos.x << ", " << camera_pos.y << ", " << camera_pos.z << '\n';
+        std::cout << "yaw: " << yaw << '\n';
+        std::cout << "pitch: " << pitch << '\n';
+        std::cout << '\n';
+    }
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
