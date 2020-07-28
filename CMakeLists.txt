@@ -64,3 +64,5 @@ add_executable(camera1 src/getting_started/camera/1/camera1.cpp)
 add_executable(camera2 src/getting_started/camera/2/camera2.cpp)
 
 add_executable(colors src/lighting/colors/colors.cpp)
+
+add_executable(ambient src/lighting/basic_lighting/ambient/basic_lighting_ambient.cpp)
