@@ -66,3 +66,4 @@ add_executable(camera2 src/getting_started/camera/2/camera2.cpp)
 add_executable(colors src/lighting/colors/colors.cpp)
 
 add_executable(ambient src/lighting/basic_lighting/ambient/basic_lighting_ambient.cpp)
+add_executable(diffuse src/lighting/basic_lighting/diffuse/basic_lighting_diffuse.cpp)
