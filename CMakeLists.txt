@@ -70,3 +70,4 @@ add_executable(diffuse src/lighting/basic_lighting/diffuse/basic_lighting_diffus
 add_executable(specular src/lighting/basic_lighting/specular/basic_lighting_specular.cpp)
 
 add_executable(setting_materials src/lighting/materials/setting_materials/setting_materials.cpp)
+add_executable(adjusting_light src/lighting/materials/adjusting_light/adjusting_light.cpp)
