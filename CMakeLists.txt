@@ -68,3 +68,5 @@ add_executable(colors src/lighting/colors/colors.cpp)
 add_executable(ambient src/lighting/basic_lighting/ambient/basic_lighting_ambient.cpp)
 add_executable(diffuse src/lighting/basic_lighting/diffuse/basic_lighting_diffuse.cpp)
 add_executable(specular src/lighting/basic_lighting/specular/basic_lighting_specular.cpp)
+
+add_executable(setting_materials src/lighting/materials/setting_materials/setting_materials.cpp)
