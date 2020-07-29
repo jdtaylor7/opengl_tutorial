@@ -20,8 +20,8 @@ const std::string fragment_shader_path = "src/lighting/basic_lighting/specular/s
 const std::string light_source_vertex_shader_path = "src/lighting/basic_lighting/specular/light_source_shader.vs";
 const std::string light_source_fragment_shader_path = "src/lighting/basic_lighting/specular/light_source_shader.fs";
 
-glm::vec3 camera_pos = glm::vec3(1.2f, 1.2f, 3.9f);
-glm::vec3 camera_front = glm::vec3(-0.234f, -0.256f, -0.937f);
+glm::vec3 camera_pos = glm::vec3(-1.80f, -1.53f, 3.82f);
+glm::vec3 camera_front = glm::vec3(0.533f, 0.400f, -0.746f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;
@@ -32,8 +32,8 @@ float lasty = SCREEN_HEIGHT / 2;
 
 constexpr float mouse_sensitivity = 0.05f;
 
-float yaw = -104.0f;
-float pitch = -15.0f;
+float yaw = -54.5f;
+float pitch = 23.6f;
 
 bool first_mouse = true;
 
