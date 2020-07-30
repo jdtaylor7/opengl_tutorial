@@ -72,3 +72,5 @@ add_executable(specular src/lighting/basic_lighting/specular/basic_lighting_spec
 add_executable(setting_materials src/lighting/materials/setting_materials/setting_materials.cpp)
 add_executable(adjusting_light src/lighting/materials/adjusting_light/adjusting_light.cpp)
 add_executable(changing_color src/lighting/materials/changing_color/changing_color.cpp)
+
+add_executable(diffuse_map src/lighting/lighting_maps/diffuse/main.cpp)
