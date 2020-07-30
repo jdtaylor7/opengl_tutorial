@@ -16,13 +16,14 @@ constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
 namespace fs = std::filesystem;
-const fs::path shader_path = "src/lighting/lighting_maps/diffuse";
+const fs::path shader_path = "src/lighting/lighting_maps/specular";
 const fs::path vertex_shader_path = shader_path / "shader.vs";
 const fs::path fragment_shader_path = shader_path / "shader.fs";
 const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
 const fs::path light_source_fragment_shader_path = shader_path / "light_source_shader.fs";
 
 const fs::path box_diffuse_map = "include/textures/box_diffuse_map.png";
+const fs::path box_specular_map = "include/textures/box_specular_map.png";
 
 glm::vec3 camera_pos = glm::vec3(-1.80f, -1.53f, 3.82f);
 glm::vec3 camera_front = glm::vec3(0.533f, 0.400f, -0.746f);
@@ -252,19 +253,27 @@ int main()
     /*
      * Load textures.
      */
-    // Create texture ID.
-    unsigned int box_diffuse_texture;
-    glGenTextures(1, &box_diffuse_texture);
+    // Create texture IDs.
+    std::vector<unsigned int> box_textures(2);
+    glGenTextures(2, box_textures.data());
 
-    // Bind texture as the current GL_TEXTURE_2D.
-    glBindTexture(GL_TEXTURE_2D, box_diffuse_texture);
+    /*
+     * Load diffuse box map texture.
+     */
+    // Bind diffuse map texture as the current GL_TEXTURE_2D.
+    glBindTexture(GL_TEXTURE_2D, box_textures[0]);
 
-    // Load image.
+    // Set texture parameters.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Load diffuse map image.
     int width;
     int height;
     int num_channels;
     unsigned char* data = stbi_load(box_diffuse_map.c_str(), &width, &height, &num_channels, 0);
-
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -277,17 +286,38 @@ int main()
         stbi_image_free(data);
     }
 
+    /*
+     * Load specular box map texture.
+     */
+    // Bind specular map texture as the current GL_TEXTURE_2D.
+    glBindTexture(GL_TEXTURE_2D, box_textures[1]);
+
     // Set texture parameters.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // Load specular map image.
+    data = stbi_load(box_specular_map.c_str(), &width, &height, &num_channels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cerr << "Failed to load texture at " << box_specular_map << '\n';
+        stbi_image_free(data);
+    }
+
     glEnable(GL_DEPTH_TEST);
 
     // Set some shader attributes before run loop.
     shader.use();
     shader.set_int("material.diffuse", 0);
+    shader.set_int("material.specular", 1);
 
     /*
      * Render loop.
@@ -337,7 +367,6 @@ int main()
         shader.set_vec3("light.specular", glm::vec3(1.0f));
 
         // Material properties.
-        shader.set_vec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
         shader.set_float("material.shininess", 32.0f);
 
         // Set MVP matrices.
@@ -345,9 +374,11 @@ int main()
         shader.set_mat4fv("view", view);
         shader.set_mat4fv("projection", projection);
 
-        // Bind diffuse map.
+        // Bind map textures.
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, box_diffuse_texture);
+        glBindTexture(GL_TEXTURE_2D, box_textures[0]);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, box_textures[1]);
 
         // Render cube.
         glBindVertexArray(cubeVAO);
