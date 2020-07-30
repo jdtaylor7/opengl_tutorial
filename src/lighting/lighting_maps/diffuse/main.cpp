@@ -22,7 +22,8 @@ const fs::path fragment_shader_path = shader_path / "shader.fs";
 const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
 const fs::path light_source_fragment_shader_path = shader_path / "light_source_shader.fs";
 
-const fs::path box_texture_path = "include/textures/wood_and_steel.png";
+const fs::path box_diffuse_map = "include/textures/box_diffuse_map.png";
+const fs::path box_specular_map = "include/textures/box_specular_map.png";
 
 glm::vec3 camera_pos = glm::vec3(-1.80f, -1.53f, 3.82f);
 glm::vec3 camera_front = glm::vec3(0.533f, 0.400f, -0.746f);
@@ -263,7 +264,7 @@ int main()
     int width;
     int height;
     int num_channels;
-    unsigned char* data = stbi_load(box_texture_path.c_str(), &width, &height, &num_channels, 0);
+    unsigned char* data = stbi_load(box_diffuse_map.c_str(), &width, &height, &num_channels, 0);
 
     if (data)
     {
@@ -273,7 +274,7 @@ int main()
     }
     else
     {
-        std::cerr << "Failed to load texture at " << box_texture_path << '\n';
+        std::cerr << "Failed to load texture at " << box_diffuse_map << '\n';
         stbi_image_free(data);
     }
 
