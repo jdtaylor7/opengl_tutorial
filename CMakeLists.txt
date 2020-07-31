@@ -75,3 +75,5 @@ add_executable(changing_color src/lighting/materials/changing_color/changing_col
 
 add_executable(diffuse_map src/lighting/lighting_maps/diffuse/main.cpp)
 add_executable(specular_map src/lighting/lighting_maps/specular/main.cpp)
+
+add_executable(directional_light src/lighting/light_casters/1_directional/main.cpp)
