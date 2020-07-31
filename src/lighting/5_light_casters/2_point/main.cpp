@@ -25,8 +25,8 @@ const fs::path light_source_fragment_shader_path = shader_path / "light_source_s
 const fs::path box_diffuse_map = "include/textures/box_diffuse_map.png";
 const fs::path box_specular_map = "include/textures/box_specular_map.png";
 
-glm::vec3 camera_pos = glm::vec3(-4.24f, 2.89f, 6.39f);
-glm::vec3 camera_front = glm::vec3(0.345f, -0.216f, -0.913f);
+glm::vec3 camera_pos = glm::vec3(-4.34f, 2.94f, 6.61f);
+glm::vec3 camera_front = glm::vec3(0.400f, -0.230f, -0.887f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;
@@ -37,14 +37,13 @@ float lasty = SCREEN_HEIGHT / 2;
 
 constexpr float mouse_sensitivity = 0.05f;
 
-float yaw = -69.30f;
-float pitch = -12.50f;
+float yaw = -65.7f;
+float pitch = -13.3f;
 
 bool first_mouse = true;
 
 float fov = 45.0f;
 
-const glm::vec3 cube_pos = glm::vec3(0.0f);
 const glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
 
 const std::vector<float> vertices = {
@@ -132,8 +131,8 @@ void process_input(GLFWwindow* window)
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        std::cout << "camera_front: " << camera_front.x << ", " << camera_front.y << ", " << camera_front.z << '\n';
         std::cout << "camera_pos: " << camera_pos.x << ", " << camera_pos.y << ", " << camera_pos.z << '\n';
+        std::cout << "camera_front: " << camera_front.x << ", " << camera_front.y << ", " << camera_front.z << '\n';
         std::cout << "yaw: " << yaw << '\n';
         std::cout << "pitch: " << pitch << '\n';
         std::cout << '\n';
@@ -228,15 +227,14 @@ int main()
     glGenVertexArrays(1, &cubeVAO);
     glBindVertexArray(cubeVAO);
 
-    // Send vertex data to the vertex shader. Do so by allocating GPU
-    // memory, which is managed by "vertex buffer objects" (VBOs).
+    // Send vertex data to the vertex shader. Do so by allocating GPU memory,
+    // which is managed by "vertex buffer objects" (VBOs). Bind VBO to the
+    // vertex buffer object, GL_ARRAY_BUFFER. Buffer operations on
+    // GL_ARRAY_BUFFER then apply to VBO.
     glGenBuffers(1, &VBO);
-
-    // Bind VBO to the vertex buffer object, GL_ARRAY_BUFFER. Buffer
-    // operations on GL_ARRAY_BUFFER then apply to VBO.
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
     // Cube position attribute.
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -251,8 +249,8 @@ int main()
     unsigned int lightVAO;
     glGenVertexArrays(1, &lightVAO);
     glBindVertexArray(lightVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // Light position attribute.
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -354,15 +352,6 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Create transformation matrices.
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 projection = glm::mat4(1.0f);
-
-        model = glm::translate(model, cube_pos);
-        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-        projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
-
         /*
          * Draw cube.
          */
@@ -378,16 +367,22 @@ int main()
         shader.set_vec3("light.diffuse", glm::vec3(0.5f));
         shader.set_vec3("light.specular", glm::vec3(1.0f));
         shader.set_float("light.constant", 1.0f);
-        shader.set_float("light.linear", 0.045f);
-        shader.set_float("light.quadratic", 0.0075f);
+        shader.set_float("light.linear", 0.07f);
+        shader.set_float("light.quadratic", 0.017f);
 
         // Material properties.
         shader.set_float("material.shininess", 32.0f);
 
         // Set MVP matrices.
-        shader.set_mat4fv("model", model);
-        shader.set_mat4fv("view", view);
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
+
+        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
+        projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+
         shader.set_mat4fv("projection", projection);
+        shader.set_mat4fv("view", view);
 
         // Bind map textures.
         glActiveTexture(GL_TEXTURE0);
