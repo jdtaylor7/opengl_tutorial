@@ -16,7 +16,7 @@ constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
 namespace fs = std::filesystem;
-const fs::path shader_path = "src/lighting/5_light_casters/1_directional";
+const fs::path shader_path = "src/lighting/6_multiple_lights";
 const fs::path vertex_shader_path = shader_path / "shader.vs";
 const fs::path fragment_shader_path = shader_path / "shader.fs";
 const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
@@ -25,8 +25,8 @@ const fs::path light_source_fragment_shader_path = shader_path / "light_source_s
 const fs::path box_diffuse_map = "include/textures/box_diffuse_map.png";
 const fs::path box_specular_map = "include/textures/box_specular_map.png";
 
-glm::vec3 camera_pos = glm::vec3(-4.24f, 2.89f, 6.39f);
-glm::vec3 camera_front = glm::vec3(0.345f, -0.216f, -0.913f);
+glm::vec3 camera_pos = glm::vec3(3.02f, 1.39f, 6.02f);
+glm::vec3 camera_front = glm::vec3(-0.30f, -0.14f, -0.94f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;
@@ -37,12 +37,25 @@ float lasty = SCREEN_HEIGHT / 2;
 
 constexpr float mouse_sensitivity = 0.05f;
 
-float yaw = -69.30f;
-float pitch = -12.50f;
+float yaw = -107.6f;
+float pitch = -7.8f;
 
 bool first_mouse = true;
 
 float fov = 45.0f;
+
+const glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
+
+const glm::vec3 dir_light_color = glm::vec3(1.0f);
+
+const std::vector<glm::vec3> point_light_colors{
+    glm::vec3(1.0f, 0.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, 1.0f),
+    glm::vec3(0.5f, 0.5f, 0.5f),
+};
+
+const glm::vec3 spotlight_color = glm::vec3(1.0f);
 
 const std::vector<float> vertices = {
     // positions                 // normals    // texture coords
@@ -102,6 +115,13 @@ const std::vector<glm::vec3> cube_positions = {
     glm::vec3(-1.3f,  1.0f, -1.5f),
 };
 
+const std::vector<glm::vec3> point_light_positions = {
+    glm::vec3( 0.7f,  0.2f,  2.0f),
+    glm::vec3( 2.3f, -3.3f, -4.0f),
+    glm::vec3(-4.0f,  2.0f, -12.0f),
+    glm::vec3( 0.0f,  0.0f, -3.0f),
+};
+
 const std::vector<unsigned int> indices = {
     0, 1, 3,  // right triangle
     1, 2, 3,  // left triangle
@@ -129,8 +149,8 @@ void process_input(GLFWwindow* window)
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        std::cout << "camera_front: " << camera_front.x << ", " << camera_front.y << ", " << camera_front.z << '\n';
         std::cout << "camera_pos: " << camera_pos.x << ", " << camera_pos.y << ", " << camera_pos.z << '\n';
+        std::cout << "camera_front: " << camera_front.x << ", " << camera_front.y << ", " << camera_front.z << '\n';
         std::cout << "yaw: " << yaw << '\n';
         std::cout << "pitch: " << pitch << '\n';
         std::cout << '\n';
@@ -358,12 +378,41 @@ int main()
 
         // Position properties.
         shader.set_vec3("view_pos", camera_pos);
-        shader.set_vec3("light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
 
-        // Light properties.
-        shader.set_vec3("light.ambient", glm::vec3(0.2f));
-        shader.set_vec3("light.diffuse", glm::vec3(0.5f));
-        shader.set_vec3("light.specular", glm::vec3(1.0f));
+        // Directional light properties.
+        shader.set_vec3("dir_light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
+
+        shader.set_vec3("dir_light.ambient", glm::vec3(0.2f));
+        shader.set_vec3("dir_light.diffuse", glm::vec3(0.5f));
+        shader.set_vec3("dir_light.specular", glm::vec3(1.0f));
+
+        // Point light properties.
+        for (std::size_t i = 0; i < point_light_positions.size(); i++)
+        {
+            std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
+
+            shader.set_vec3(attr_prefix + "position", point_light_positions[i]);
+            shader.set_vec3(attr_prefix + "ambient", glm::vec3(0.05f));
+            shader.set_vec3(attr_prefix + "diffuse", point_light_colors[i] * glm::vec3(0.5f));
+            shader.set_vec3(attr_prefix + "specular", point_light_colors[i] * glm::vec3(1.0f));
+            shader.set_float(attr_prefix + "constant", 1.0f);
+            shader.set_float(attr_prefix + "linear", 0.07f);
+            shader.set_float(attr_prefix + "quadratic", 0.017f);
+        }
+
+        // Spotlight properties.
+        shader.set_vec3("spotlight.position", camera_pos);
+        shader.set_vec3("spotlight.direction", camera_front);
+        shader.set_float("spotlight.inner_cutoff", glm::cos(glm::radians(12.5f)));
+        shader.set_float("spotlight.outer_cutoff", glm::cos(glm::radians(17.5f)));
+
+        shader.set_vec3("spotlight.ambient", glm::vec3(0.0f));
+        shader.set_vec3("spotlight.diffuse", glm::vec3(0.5f));
+        shader.set_vec3("spotlight.specular", glm::vec3(1.0f));
+
+        shader.set_float("spotlight.constant", 1.0f);
+        shader.set_float("spotlight.linear", 0.07f);
+        shader.set_float("spotlight.quadratic", 0.017f);
 
         // Material properties.
         shader.set_float("material.shininess", 32.0f);
@@ -394,6 +443,28 @@ int main()
             float angle = 20.0f * i;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             shader.set_mat4fv("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+        /*
+         * Draw point lights.
+         */
+        // Set light shader values.
+        light_source_shader.use();
+
+        // Set MVP matrices.
+        light_source_shader.set_mat4fv("projection", projection);
+        light_source_shader.set_mat4fv("view", view);
+
+        // Render point light.
+        for (std::size_t i = 0; i < point_light_positions.size(); i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, point_light_positions[i]);
+            model = glm::scale(model, glm::vec3(0.2f));
+            light_source_shader.set_mat4fv("model", model);
+            light_source_shader.set_vec3("color", point_light_colors[i]);
+            glBindVertexArray(lightVAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
