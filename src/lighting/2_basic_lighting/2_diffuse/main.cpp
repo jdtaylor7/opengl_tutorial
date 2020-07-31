@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -14,14 +15,15 @@
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/lighting/basic_lighting/specular/shader.vs";
-const std::string fragment_shader_path = "src/lighting/basic_lighting/specular/shader.fs";
+namespace fs = std::filesystem;
+const fs::path shader_path = "src/lighting/2_basic_lighting/2_diffuse";
+const fs::path vertex_shader_path = shader_path / "shader.vs";
+const fs::path fragment_shader_path = shader_path / "shader.fs";
+const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
+const fs::path light_source_fragment_shader_path = shader_path / "light_source_shader.fs";
 
-const std::string light_source_vertex_shader_path = "src/lighting/basic_lighting/specular/light_source_shader.vs";
-const std::string light_source_fragment_shader_path = "src/lighting/basic_lighting/specular/light_source_shader.fs";
-
-glm::vec3 camera_pos = glm::vec3(-1.80f, -1.53f, 3.82f);
-glm::vec3 camera_front = glm::vec3(0.533f, 0.400f, -0.746f);
+glm::vec3 camera_pos = glm::vec3(1.2f, 1.2f, 3.9f);
+glm::vec3 camera_front = glm::vec3(-0.234f, -0.256f, -0.937f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;
@@ -32,8 +34,8 @@ float lasty = SCREEN_HEIGHT / 2;
 
 constexpr float mouse_sensitivity = 0.05f;
 
-float yaw = -54.5f;
-float pitch = 23.6f;
+float yaw = -104.0f;
+float pitch = -15.0f;
 
 bool first_mouse = true;
 
@@ -293,7 +295,6 @@ int main()
         shader.use();
         shader.set_vec3("object_color", glm::vec3(1.0f, 0.5f, 0.31f));
         shader.set_vec3("light_color", glm::vec3(1.0f, 1.0f, 1.0f));
-        shader.set_vec3("view_pos", camera_pos);
         shader.set_mat4fv("model", model);
         shader.set_mat4fv("view", view);
         shader.set_mat4fv("projection", projection);

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -14,11 +15,12 @@
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/lighting/basic_lighting/ambient/shader.vs";
-const std::string fragment_shader_path = "src/lighting/basic_lighting/ambient/shader.fs";
-
-const std::string light_source_vertex_shader_path = "src/lighting/basic_lighting/ambient/light_source_shader.vs";
-const std::string light_source_fragment_shader_path = "src/lighting/basic_lighting/ambient/light_source_shader.fs";
+namespace fs = std::filesystem;
+const fs::path shader_path = "src/lighting/1_colors";
+const fs::path vertex_shader_path = shader_path / "shader.vs";
+const fs::path fragment_shader_path = shader_path / "shader.fs";
+const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
+const fs::path light_source_fragment_shader_path = shader_path / "light_source_shader.fs";
 
 glm::vec3 camera_pos = glm::vec3(1.2f, 1.2f, 3.9f);
 glm::vec3 camera_front = glm::vec3(-0.234f, -0.256f, -0.937f);

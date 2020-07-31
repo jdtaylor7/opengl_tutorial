@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -14,14 +15,15 @@
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/lighting/basic_lighting/diffuse/shader.vs";
-const std::string fragment_shader_path = "src/lighting/basic_lighting/diffuse/shader.fs";
+namespace fs = std::filesystem;
+const fs::path shader_path = "src/lighting/3_materials/3_changing_color";
+const fs::path vertex_shader_path = shader_path / "shader.vs";
+const fs::path fragment_shader_path = shader_path / "shader.fs";
+const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
+const fs::path light_source_fragment_shader_path = shader_path / "light_source_shader.fs";
 
-const std::string light_source_vertex_shader_path = "src/lighting/basic_lighting/diffuse/light_source_shader.vs";
-const std::string light_source_fragment_shader_path = "src/lighting/basic_lighting/diffuse/light_source_shader.fs";
-
-glm::vec3 camera_pos = glm::vec3(1.2f, 1.2f, 3.9f);
-glm::vec3 camera_front = glm::vec3(-0.234f, -0.256f, -0.937f);
+glm::vec3 camera_pos = glm::vec3(-1.80f, -1.53f, 3.82f);
+glm::vec3 camera_front = glm::vec3(0.533f, 0.400f, -0.746f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;
@@ -32,8 +34,8 @@ float lasty = SCREEN_HEIGHT / 2;
 
 constexpr float mouse_sensitivity = 0.05f;
 
-float yaw = -104.0f;
-float pitch = -15.0f;
+float yaw = -54.5f;
+float pitch = 23.6f;
 
 bool first_mouse = true;
 
@@ -254,7 +256,10 @@ int main()
     Shader light_source_shader(light_source_vertex_shader_path, light_source_fragment_shader_path);
 
     shader.use();
-    shader.set_vec3("light_pos", light_pos);
+    shader.set_vec3("light.position", light_pos);
+    shader.set_vec3("light.ambient", glm::vec3(0.2f));
+    shader.set_vec3("light.diffuse", glm::vec3(1.0f));
+    shader.set_vec3("light.specular", glm::vec3(1.0f));
 
     glEnable(GL_DEPTH_TEST);
 
@@ -289,10 +294,24 @@ int main()
         view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
         projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 
+        glm::vec3 light_color;
+        light_color.x = sin(glfwGetTime() * 2.0f);
+        light_color.y = sin(glfwGetTime() * 0.7f);
+        light_color.z = sin(glfwGetTime() * 1.3f);
+
+        glm::vec3 diffuse_color = light_color * glm::vec3(0.5f);
+        glm::vec3 ambient_color = diffuse_color * glm::vec3(0.2f);
+
         // Render cube.
         shader.use();
         shader.set_vec3("object_color", glm::vec3(1.0f, 0.5f, 0.31f));
-        shader.set_vec3("light_color", glm::vec3(1.0f, 1.0f, 1.0f));
+        shader.set_vec3("view_pos", camera_pos);
+        shader.set_vec3("light.ambient", ambient_color);
+        shader.set_vec3("light.diffuse", diffuse_color);
+        shader.set_vec3("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+        shader.set_vec3("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
+        shader.set_vec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+        shader.set_float("material.shininess", 32.0f);
         shader.set_mat4fv("model", model);
         shader.set_mat4fv("view", view);
         shader.set_mat4fv("projection", projection);

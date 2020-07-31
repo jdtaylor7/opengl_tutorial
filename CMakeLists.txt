@@ -63,18 +63,18 @@ add_executable(coordinate_systems3 src/getting_started/coordinate_systems/3/coor
 add_executable(camera1 src/getting_started/camera/1/camera1.cpp)
 add_executable(camera2 src/getting_started/camera/2/camera2.cpp)
 
-add_executable(colors src/lighting/colors/colors.cpp)
+add_executable(colors src/lighting/1_colors/main.cpp)
 
-add_executable(ambient src/lighting/basic_lighting/ambient/basic_lighting_ambient.cpp)
-add_executable(diffuse src/lighting/basic_lighting/diffuse/basic_lighting_diffuse.cpp)
-add_executable(specular src/lighting/basic_lighting/specular/basic_lighting_specular.cpp)
+add_executable(ambient src/lighting/2_basic_lighting/1_ambient/main.cpp)
+add_executable(diffuse src/lighting/2_basic_lighting/2_diffuse/main.cpp)
+add_executable(specular src/lighting/2_basic_lighting/3_specular/main.cpp)
 
-add_executable(setting_materials src/lighting/materials/setting_materials/setting_materials.cpp)
-add_executable(adjusting_light src/lighting/materials/adjusting_light/adjusting_light.cpp)
-add_executable(changing_color src/lighting/materials/changing_color/changing_color.cpp)
+add_executable(setting_materials src/lighting/3_materials/1_setting_materials/main.cpp)
+add_executable(adjusting_light src/lighting/3_materials/2_adjusting_light/main.cpp)
+add_executable(changing_color src/lighting/3_materials/3_changing_color/main.cpp)
 
-add_executable(diffuse_map src/lighting/lighting_maps/diffuse/main.cpp)
-add_executable(specular_map src/lighting/lighting_maps/specular/main.cpp)
+add_executable(diffuse_map src/lighting/4_lighting_maps/1_diffuse/main.cpp)
+add_executable(specular_map src/lighting/4_lighting_maps/2_specular/main.cpp)
 
-add_executable(directional_light src/lighting/light_casters/1_directional/main.cpp)
-add_executable(point_light src/lighting/light_casters/2_point/main.cpp)
+add_executable(directional_light src/lighting/5_light_casters/1_directional/main.cpp)
+add_executable(point_light src/lighting/5_light_casters/2_point/main.cpp)

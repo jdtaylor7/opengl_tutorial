@@ -16,7 +16,7 @@ constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
 namespace fs = std::filesystem;
-const fs::path shader_path = "src/lighting/lighting_maps/specular";
+const fs::path shader_path = "src/lighting/5_light_casters/1_directional";
 const fs::path vertex_shader_path = shader_path / "shader.vs";
 const fs::path fragment_shader_path = shader_path / "shader.fs";
 const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
@@ -25,8 +25,8 @@ const fs::path light_source_fragment_shader_path = shader_path / "light_source_s
 const fs::path box_diffuse_map = "include/textures/box_diffuse_map.png";
 const fs::path box_specular_map = "include/textures/box_specular_map.png";
 
-glm::vec3 camera_pos = glm::vec3(-1.80f, -1.53f, 3.82f);
-glm::vec3 camera_front = glm::vec3(0.533f, 0.400f, -0.746f);
+glm::vec3 camera_pos = glm::vec3(-4.24f, 2.89f, 6.39f);
+glm::vec3 camera_front = glm::vec3(0.345f, -0.216f, -0.913f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;
@@ -37,15 +37,15 @@ float lasty = SCREEN_HEIGHT / 2;
 
 constexpr float mouse_sensitivity = 0.05f;
 
-float yaw = -54.5f;
-float pitch = 23.6f;
+float yaw = -69.30f;
+float pitch = -12.50f;
 
 bool first_mouse = true;
 
 float fov = 45.0f;
 
-const glm::vec3 cube_pos(0.0f, 0.0f, 0.0f);
-const glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
+const glm::vec3 cube_pos = glm::vec3(0.0f);
+// const glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
 
 const std::vector<float> vertices = {
     // positions                 // normals    // texture coords
@@ -90,6 +90,19 @@ const std::vector<float> vertices = {
      0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
     -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+};
+
+const std::vector<glm::vec3> cube_positions = {
+    glm::vec3( 0.0f,  0.0f,  0.0f),
+    glm::vec3( 2.0f,  5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3( 2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f,  3.0f, -7.5f),
+    glm::vec3( 1.3f, -2.0f, -2.5f),
+    glm::vec3( 1.5f,  2.0f, -2.5f),
+    glm::vec3( 1.5f,  0.2f, -1.5f),
+    glm::vec3(-1.3f,  1.0f, -1.5f),
 };
 
 const std::vector<unsigned int> indices = {
@@ -346,7 +359,6 @@ int main()
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
 
-        model = glm::mat4(1.0f);
         model = glm::translate(model, cube_pos);
         view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
         projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -359,7 +371,8 @@ int main()
 
         // Position properties.
         shader.set_vec3("view_pos", camera_pos);
-        shader.set_vec3("light.position", light_pos);
+        // shader.set_vec3("light.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+        shader.set_vec3("light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
 
         // Light properties.
         shader.set_vec3("light.ambient", glm::vec3(0.2f));
@@ -380,30 +393,23 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, box_textures[1]);
 
-        // Render cube.
+        // Render cubes.
         glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (std::size_t i = 0; i < cube_positions.size(); i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, cube_positions[i]);
+            float angle = 20.0f * i;
+            // model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            if (i == 2)
+                model = glm::rotate(model, glm::radians(-angle), glm::vec3(0.0f, 0.0f, 1.0f));
+            shader.set_mat4fv("model", model);
 
-        // Adjust space coordinates for light.
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, light_pos);
-        model = glm::scale(model, glm::vec3(0.2f));
 
-        /*
-         * Draw light.
-         */
+            shader.set_vec3("light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
 
-        // Set light shader values.
-        light_source_shader.use();
-
-        // Set MVP matrices.
-        light_source_shader.set_mat4fv("model", model);
-        light_source_shader.set_mat4fv("view", view);
-        light_source_shader.set_mat4fv("projection", projection);
-
-        // Render light.
-        glBindVertexArray(lightVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         /*
          * Swap buffers and poll I/O events.
