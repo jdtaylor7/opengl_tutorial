@@ -78,3 +78,4 @@ add_executable(specular_map src/lighting/4_lighting_maps/2_specular/main.cpp)
 
 add_executable(directional_light src/lighting/5_light_casters/1_directional/main.cpp)
 add_executable(point_light src/lighting/5_light_casters/2_point/main.cpp)
+add_executable(spotlight src/lighting/5_light_casters/3_spotlight/main.cpp)
