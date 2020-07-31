@@ -77,3 +77,4 @@ add_executable(diffuse_map src/lighting/lighting_maps/diffuse/main.cpp)
 add_executable(specular_map src/lighting/lighting_maps/specular/main.cpp)
 
 add_executable(directional_light src/lighting/light_casters/1_directional/main.cpp)
+add_executable(point_light src/lighting/light_casters/2_point/main.cpp)
