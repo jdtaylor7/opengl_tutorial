@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -14,8 +15,10 @@
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/getting_started/camera/1/shader.vs";
-const std::string fragment_shader_path = "src/getting_started/camera/1/shader.fs";
+namespace fs = std::filesystem;
+const fs::path shader_path = "src/1_getting_started/6_coordinate_systems/2_single_cube";
+const fs::path vertex_shader_path = shader_path / "shader.vs";
+const fs::path fragment_shader_path = shader_path / "shader.fs";
 
 const std::string container_texture_path = "include/textures/container.jpg";
 const std::string face_texture_path = "include/textures/awesomeface.png";
@@ -67,19 +70,6 @@ const std::vector<float> vertices = {
 const std::vector<unsigned int> indices = {
     0, 1, 3,  // right triangle
     1, 2, 3,  // left triangle
-};
-
-const std::vector<glm::vec3> cube_positions = {
-    glm::vec3( 0.0f,  0.0f,  0.0f),
-    glm::vec3( 2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3( 2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3( 1.3f, -2.0f, -2.5f),
-    glm::vec3( 1.5f,  2.0f, -2.5f),
-    glm::vec3( 1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f),
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -253,14 +243,6 @@ int main()
      */
     while (!glfwWindowShouldClose(window))
     {
-        glm::vec3 world_origin = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
-        glm::vec3 camera_target = world_origin;
-        glm::vec3 camera_direction = glm::normalize(camera_pos - camera_target);
-        glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::vec3 camera_right = glm::normalize(glm::cross(world_up, camera_direction));
-        glm::vec3 camera_up = glm::cross(camera_direction, camera_right);
-
         /*
          * Input.
          */
@@ -286,10 +268,7 @@ int main()
         glm::mat4 projection = glm::mat4(1.0f);
 
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-        const float radius = 10.0f;
-        float cam_x = sin(glfwGetTime()) * radius;
-        float cam_z = cos(glfwGetTime()) * radius;
-        view = glm::lookAt(glm::vec3(cam_x, 0.0f, cam_z), world_origin, world_up);
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
         shader.use();
@@ -298,14 +277,7 @@ int main()
         shader.set_mat4fv("view", view);
         shader.set_mat4fv("projection", projection);
         glBindVertexArray(VAO);
-        for (unsigned int i = 0; i < cube_positions.size(); i++)
-        {
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, cube_positions[i]);
-            model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(0.5f, 1.0f, 0.0f));
-            shader.set_mat4fv("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
 
         /*

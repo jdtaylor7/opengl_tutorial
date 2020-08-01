@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -9,6 +10,11 @@
 
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
+
+namespace fs = std::filesystem;
+const fs::path shader_path = "src/1_getting_started/3_shaders/3_shader_from_file";
+const fs::path vertex_shader_path = shader_path / "shader.vs";
+const fs::path fragment_shader_path = shader_path / "shader.fs";
 
 const std::vector<float> vertices = {
     // positions         // colors
@@ -94,7 +100,7 @@ int main()
     /*
      * Create shader program.
      */
-    Shader shader("src/getting_started/shaders/3/shader.vs", "src/getting_started/shaders/3/shader.fs");
+    Shader shader(vertex_shader_path, fragment_shader_path);
 
     /*
      * Render loop.

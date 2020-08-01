@@ -1,18 +1,24 @@
 #include <iostream>
+#include <filesystem>
 #include <string>
 #include <vector>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "shader.hpp"
 
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
-const std::string vertex_shader_path = "src/getting_started/textures/2/shader.vs";
-const std::string fragment_shader_path = "src/getting_started/textures/2/shader.fs";
+namespace fs = std::filesystem;
+const fs::path shader_path = "src/1_getting_started/6_coordinate_systems/1_single_plane";
+const fs::path vertex_shader_path = shader_path / "shader.vs";
+const fs::path fragment_shader_path = shader_path / "shader.fs";
 
 const std::string container_texture_path = "include/textures/container.jpg";
 const std::string face_texture_path = "include/textures/awesomeface.png";
@@ -185,12 +191,30 @@ int main()
         std::cout << "Failed to load texture\n";
     }
 
+    /*
+     * Initialize mix value.
+     */
+    float mix_val = 0.4;
+
+    /*
+     * Create transformation matrices.
+     */
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.0f);
+
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
     // Set uniforms.
     shader.use();
     shader.set_int("texture1", 0);
     shader.set_int("texture2", 1);
-    float mix_val = 0.4;
     shader.set_float("mix_val", mix_val);
+    shader.set_mat4fv("model", model);
+    shader.set_mat4fv("view", view);
+    shader.set_mat4fv("projection", projection);
 
     /*
      * Render loop.

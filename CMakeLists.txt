@@ -52,26 +52,26 @@ link_libraries(glad stb_image glfw)
 # Add executables.
 #
 # Getting started.
-add_executable(window src/getting_started/hello_window/hello_window.cpp)
+add_executable(window src/1_getting_started/1_hello_window/main.cpp)
 
-add_executable(triangle1 src/getting_started/hello_triangle/1/hello_triangle1.cpp)
-add_executable(triangle2 src/getting_started/hello_triangle/2/hello_triangle2.cpp)
+add_executable(triangle src/1_getting_started/2_hello_triangle/1_triangle/main.cpp)
+add_executable(square src/1_getting_started/2_hello_triangle/2_square/main.cpp)
 
-add_executable(shaders1 src/getting_started/shaders/1/shaders1.cpp)
-add_executable(shaders2 src/getting_started/shaders/2/shaders2.cpp)
-add_executable(shaders3 src/getting_started/shaders/3/shaders3.cpp)
+add_executable(shaders1 src/1_getting_started/3_shaders/1_shader_updating/main.cpp)
+add_executable(shaders2 src/1_getting_started/3_shaders/2_shader_interpolating/main.cpp)
+add_executable(shaders3 src/1_getting_started/3_shaders/3_shader_from_file/main.cpp)
 
-add_executable(textures1 src/getting_started/textures/1/textures1.cpp)
-add_executable(textures2 src/getting_started/textures/2/textures2.cpp)
+add_executable(textures1 src/1_getting_started/4_textures/1_one_texture/main.cpp)
+add_executable(textures2 src/1_getting_started/4_textures/2_two_textures/main.cpp)
 
-add_executable(transformations src/getting_started/transformations/transformations.cpp)
+add_executable(transformations src/1_getting_started/5_transformations/main.cpp)
 
-add_executable(coordinate_systems1 src/getting_started/coordinate_systems/1/coordinate_systems1.cpp)
-add_executable(coordinate_systems2 src/getting_started/coordinate_systems/2/coordinate_systems2.cpp)
-add_executable(coordinate_systems3 src/getting_started/coordinate_systems/3/coordinate_systems3.cpp)
+add_executable(coordinate_systems1 src/1_getting_started/6_coordinate_systems/1_single_plane/main.cpp)
+add_executable(coordinate_systems2 src/1_getting_started/6_coordinate_systems/2_single_cube/main.cpp)
+add_executable(coordinate_systems3 src/1_getting_started/6_coordinate_systems/3_many_cubes/main.cpp)
 
-add_executable(camera1 src/getting_started/camera/1/camera1.cpp)
-add_executable(camera2 src/getting_started/camera/2/camera2.cpp)
+add_executable(camera1 src/1_getting_started/7_camera/1_automatic_camera/main.cpp)
+add_executable(camera2 src/1_getting_started/7_camera/2_manual_camera/main.cpp)
 
 # Lighting.
 add_executable(colors src/2_lighting/1_colors/main.cpp)
