@@ -16,7 +16,7 @@ constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
 namespace fs = std::filesystem;
-const fs::path shader_path = "src/lighting/5_light_casters/3_spotlight";
+const fs::path shader_path = "src/2_lighting/5_light_casters/2_point";
 const fs::path vertex_shader_path = shader_path / "shader.vs";
 const fs::path fragment_shader_path = shader_path / "shader.fs";
 const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
@@ -43,6 +43,8 @@ float pitch = -13.3f;
 bool first_mouse = true;
 
 float fov = 45.0f;
+
+const glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
 
 const std::vector<float> vertices = {
     // positions                 // normals    // texture coords
@@ -358,12 +360,9 @@ int main()
 
         // Position properties.
         shader.set_vec3("view_pos", camera_pos);
+        shader.set_vec3("light.position", light_pos);
 
         // Light properties.
-        shader.set_vec3("light.position", camera_pos);
-        shader.set_vec3("light.direction", camera_front);
-        shader.set_float("light.inner_cutoff", glm::cos(glm::radians(12.5f)));
-        shader.set_float("light.outer_cutoff", glm::cos(glm::radians(17.5f)));
         shader.set_vec3("light.ambient", glm::vec3(0.2f));
         shader.set_vec3("light.diffuse", glm::vec3(0.5f));
         shader.set_vec3("light.specular", glm::vec3(1.0f));
@@ -402,6 +401,26 @@ int main()
             shader.set_mat4fv("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
+
+        /*
+         * Draw light.
+         */
+        // Adjust space coordinates for light.
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, light_pos);
+        model = glm::scale(model, glm::vec3(0.2f));
+
+        // Set light shader values.
+        light_source_shader.use();
+
+        // Set MVP matrices.
+        light_source_shader.set_mat4fv("model", model);
+        light_source_shader.set_mat4fv("view", view);
+        light_source_shader.set_mat4fv("projection", projection);
+
+        // Render light.
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         /*
          * Swap buffers and poll I/O events.

@@ -16,7 +16,7 @@ constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
 namespace fs = std::filesystem;
-const fs::path shader_path = "src/lighting/3_materials/1_setting_materials";
+const fs::path shader_path = "src/2_lighting/3_materials/3_changing_color";
 const fs::path vertex_shader_path = shader_path / "shader.vs";
 const fs::path fragment_shader_path = shader_path / "shader.fs";
 const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
@@ -256,7 +256,10 @@ int main()
     Shader light_source_shader(light_source_vertex_shader_path, light_source_fragment_shader_path);
 
     shader.use();
-    shader.set_vec3("light_pos", light_pos);
+    shader.set_vec3("light.position", light_pos);
+    shader.set_vec3("light.ambient", glm::vec3(0.2f));
+    shader.set_vec3("light.diffuse", glm::vec3(1.0f));
+    shader.set_vec3("light.specular", glm::vec3(1.0f));
 
     glEnable(GL_DEPTH_TEST);
 
@@ -291,11 +294,20 @@ int main()
         view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
         projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 
+        glm::vec3 light_color;
+        light_color.x = sin(glfwGetTime() * 2.0f);
+        light_color.y = sin(glfwGetTime() * 0.7f);
+        light_color.z = sin(glfwGetTime() * 1.3f);
+
+        glm::vec3 diffuse_color = light_color * glm::vec3(0.5f);
+        glm::vec3 ambient_color = diffuse_color * glm::vec3(0.2f);
+
         // Render cube.
         shader.use();
         shader.set_vec3("object_color", glm::vec3(1.0f, 0.5f, 0.31f));
-        shader.set_vec3("light_color", glm::vec3(1.0f, 1.0f, 1.0f));
         shader.set_vec3("view_pos", camera_pos);
+        shader.set_vec3("light.ambient", ambient_color);
+        shader.set_vec3("light.diffuse", diffuse_color);
         shader.set_vec3("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
         shader.set_vec3("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
         shader.set_vec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));

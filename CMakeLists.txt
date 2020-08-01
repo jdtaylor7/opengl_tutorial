@@ -48,7 +48,10 @@ add_library(stb_image OBJECT third_party/stb_image/stb_image.c)
 # Link libraries for future targets. Just lazily linking them all here.
 link_libraries(glad stb_image glfw)
 
+#
 # Add executables.
+#
+# Getting started.
 add_executable(window src/getting_started/hello_window/hello_window.cpp)
 
 add_executable(triangle1 src/getting_started/hello_triangle/1/hello_triangle1.cpp)
@@ -70,21 +73,22 @@ add_executable(coordinate_systems3 src/getting_started/coordinate_systems/3/coor
 add_executable(camera1 src/getting_started/camera/1/camera1.cpp)
 add_executable(camera2 src/getting_started/camera/2/camera2.cpp)
 
-add_executable(colors src/lighting/1_colors/main.cpp)
+# Lighting.
+add_executable(colors src/2_lighting/1_colors/main.cpp)
 
-add_executable(ambient src/lighting/2_basic_lighting/1_ambient/main.cpp)
-add_executable(diffuse src/lighting/2_basic_lighting/2_diffuse/main.cpp)
-add_executable(specular src/lighting/2_basic_lighting/3_specular/main.cpp)
+add_executable(ambient src/2_lighting/2_basic_lighting/1_ambient/main.cpp)
+add_executable(diffuse src/2_lighting/2_basic_lighting/2_diffuse/main.cpp)
+add_executable(specular src/2_lighting/2_basic_lighting/3_specular/main.cpp)
 
-add_executable(setting_materials src/lighting/3_materials/1_setting_materials/main.cpp)
-add_executable(adjusting_light src/lighting/3_materials/2_adjusting_light/main.cpp)
-add_executable(changing_color src/lighting/3_materials/3_changing_color/main.cpp)
+add_executable(setting_materials src/2_lighting/3_materials/1_setting_materials/main.cpp)
+add_executable(adjusting_light src/2_lighting/3_materials/2_adjusting_light/main.cpp)
+add_executable(changing_color src/2_lighting/3_materials/3_changing_color/main.cpp)
 
-add_executable(diffuse_map src/lighting/4_lighting_maps/1_diffuse/main.cpp)
-add_executable(specular_map src/lighting/4_lighting_maps/2_specular/main.cpp)
+add_executable(diffuse_map src/2_lighting/4_lighting_maps/1_diffuse/main.cpp)
+add_executable(specular_map src/2_lighting/4_lighting_maps/2_specular/main.cpp)
 
-add_executable(directional_light src/lighting/5_light_casters/1_directional/main.cpp)
-add_executable(point_light src/lighting/5_light_casters/2_point/main.cpp)
-add_executable(spotlight src/lighting/5_light_casters/3_spotlight/main.cpp)
+add_executable(directional_light src/2_lighting/5_light_casters/1_directional/main.cpp)
+add_executable(point_light src/2_lighting/5_light_casters/2_point/main.cpp)
+add_executable(spotlight src/2_lighting/5_light_casters/3_spotlight/main.cpp)
 
-add_executable(multiple_lights src/lighting/6_multiple_lights/main.cpp)
+add_executable(multiple_lights src/2_lighting/6_multiple_lights/main.cpp)

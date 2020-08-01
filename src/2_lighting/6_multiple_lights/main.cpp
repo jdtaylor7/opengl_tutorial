@@ -16,7 +16,7 @@ constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
 namespace fs = std::filesystem;
-const fs::path shader_path = "src/lighting/6_multiple_lights";
+const fs::path shader_path = "src/2_lighting/6_multiple_lights";
 const fs::path box_vshader_path = shader_path / "box.vs";
 const fs::path box_fshader_path = shader_path / "box.fs";
 const fs::path plight_vshader_path = shader_path / "point_light.vs";
