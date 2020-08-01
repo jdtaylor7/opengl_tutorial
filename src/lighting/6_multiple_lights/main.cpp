@@ -17,13 +17,14 @@ constexpr std::size_t SCREEN_HEIGHT = 600;
 
 namespace fs = std::filesystem;
 const fs::path shader_path = "src/lighting/6_multiple_lights";
-const fs::path vertex_shader_path = shader_path / "shader.vs";
-const fs::path fragment_shader_path = shader_path / "shader.fs";
-const fs::path light_source_vertex_shader_path = shader_path / "light_source_shader.vs";
-const fs::path light_source_fragment_shader_path = shader_path / "light_source_shader.fs";
+const fs::path box_vshader_path = shader_path / "box.vs";
+const fs::path box_fshader_path = shader_path / "box.fs";
+const fs::path plight_vshader_path = shader_path / "point_light.vs";
+const fs::path plight_fshader_path = shader_path / "point_light.fs";
 
-const fs::path box_diffuse_map = "include/textures/box_diffuse_map.png";
-const fs::path box_specular_map = "include/textures/box_specular_map.png";
+const fs::path texture_map_path = "include/textures";
+const fs::path box_diffuse_map = texture_map_path / "box_diffuse_map.png";
+const fs::path box_specular_map = texture_map_path / "box_specular_map.png";
 
 glm::vec3 camera_pos = glm::vec3(3.02f, 1.39f, 6.02f);
 glm::vec3 camera_front = glm::vec3(-0.30f, -0.14f, -0.94f);
@@ -199,6 +200,42 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
         fov = 45.0f;
 }
 
+unsigned int load_texture()
+{
+    // Create texture ID.
+    <unsigned int> texture;
+    glGenTextures(1, &texture);
+
+    /*
+     * Load diffuse box map texture.
+     */
+    // Bind diffuse map texture as the current GL_TEXTURE_2D.
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // Set texture parameters.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Load diffuse map image.
+    int width;
+    int height;
+    int num_channels;
+    unsigned char* data = stbi_load(box_diffuse_map.c_str(), &width, &height, &num_channels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cerr << "Failed to load texture at " << box_diffuse_map << '\n';
+        stbi_image_free(data);
+    }
+}
+
 int main()
 {
     /*
@@ -276,77 +313,77 @@ int main()
     /*
      * Create shader programs.
      */
-    Shader shader(vertex_shader_path.string(), fragment_shader_path.string());
-    Shader light_source_shader(light_source_vertex_shader_path.string(), light_source_fragment_shader_path.string());
+    Shader box_shader(box_vshader_path.string(), box_fshader_path.string());
+    Shader plight_shader(plight_vshader_path.string(), plight_fshader_path.string());
 
-    /*
-     * Load textures.
-     */
-    // Create texture IDs.
-    std::vector<unsigned int> box_textures(2);
-    glGenTextures(2, box_textures.data());
+    // /*
+    //  * Load textures.
+    //  */
+    // // Create texture IDs.
+    // std::vector<unsigned int> box_textures(2);
+    // glGenTextures(2, box_textures.data());
+    //
+    // /*
+    //  * Load diffuse box map texture.
+    //  */
+    // // Bind diffuse map texture as the current GL_TEXTURE_2D.
+    // glBindTexture(GL_TEXTURE_2D, box_textures[0]);
+    //
+    // // Set texture parameters.
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //
+    // // Load diffuse map image.
+    // int width;
+    // int height;
+    // int num_channels;
+    // unsigned char* data = stbi_load(box_diffuse_map.c_str(), &width, &height, &num_channels, 0);
+    // if (data)
+    // {
+    //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    //     glGenerateMipmap(GL_TEXTURE_2D);
+    //     stbi_image_free(data);
+    // }
+    // else
+    // {
+    //     std::cerr << "Failed to load texture at " << box_diffuse_map << '\n';
+    //     stbi_image_free(data);
+    // }
 
-    /*
-     * Load diffuse box map texture.
-     */
-    // Bind diffuse map texture as the current GL_TEXTURE_2D.
-    glBindTexture(GL_TEXTURE_2D, box_textures[0]);
-
-    // Set texture parameters.
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Load diffuse map image.
-    int width;
-    int height;
-    int num_channels;
-    unsigned char* data = stbi_load(box_diffuse_map.c_str(), &width, &height, &num_channels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cerr << "Failed to load texture at " << box_diffuse_map << '\n';
-        stbi_image_free(data);
-    }
-
-    /*
-     * Load specular box map texture.
-     */
-    // Bind specular map texture as the current GL_TEXTURE_2D.
-    glBindTexture(GL_TEXTURE_2D, box_textures[1]);
-
-    // Set texture parameters.
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Load specular map image.
-    data = stbi_load(box_specular_map.c_str(), &width, &height, &num_channels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cerr << "Failed to load texture at " << box_specular_map << '\n';
-        stbi_image_free(data);
-    }
+    // /*
+    //  * Load specular box map texture.
+    //  */
+    // // Bind specular map texture as the current GL_TEXTURE_2D.
+    // glBindTexture(GL_TEXTURE_2D, box_textures[1]);
+    //
+    // // Set texture parameters.
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //
+    // // Load specular map image.
+    // data = stbi_load(box_specular_map.c_str(), &width, &height, &num_channels, 0);
+    // if (data)
+    // {
+    //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    //     glGenerateMipmap(GL_TEXTURE_2D);
+    //     stbi_image_free(data);
+    // }
+    // else
+    // {
+    //     std::cerr << "Failed to load texture at " << box_specular_map << '\n';
+    //     stbi_image_free(data);
+    // }
 
     glEnable(GL_DEPTH_TEST);
 
     // Set some shader attributes before run loop.
-    shader.use();
-    shader.set_int("material.diffuse", 0);
-    shader.set_int("material.specular", 1);
+    box_shader.use();
+    box_shader.set_int("material.diffuse", 0);
+    box_shader.set_int("material.specular", 1);
 
     /*
      * Render loop.
@@ -374,48 +411,48 @@ int main()
          * Draw cube.
          */
         // Set cube shader values.
-        shader.use();
+        box_shader.use();
 
         // Position properties.
-        shader.set_vec3("view_pos", camera_pos);
+        box_shader.set_vec3("view_pos", camera_pos);
 
         // Directional light properties.
-        shader.set_vec3("dir_light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
+        box_shader.set_vec3("dir_light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
 
-        shader.set_vec3("dir_light.ambient", glm::vec3(0.2f));
-        shader.set_vec3("dir_light.diffuse", glm::vec3(0.5f));
-        shader.set_vec3("dir_light.specular", glm::vec3(1.0f));
+        box_shader.set_vec3("dir_light.ambient", glm::vec3(0.2f));
+        box_shader.set_vec3("dir_light.diffuse", glm::vec3(0.5f));
+        box_shader.set_vec3("dir_light.specular", glm::vec3(1.0f));
 
         // Point light properties.
         for (std::size_t i = 0; i < point_light_positions.size(); i++)
         {
             std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
 
-            shader.set_vec3(attr_prefix + "position", point_light_positions[i]);
-            shader.set_vec3(attr_prefix + "ambient", glm::vec3(0.05f));
-            shader.set_vec3(attr_prefix + "diffuse", point_light_colors[i] * glm::vec3(0.5f));
-            shader.set_vec3(attr_prefix + "specular", point_light_colors[i] * glm::vec3(1.0f));
-            shader.set_float(attr_prefix + "constant", 1.0f);
-            shader.set_float(attr_prefix + "linear", 0.07f);
-            shader.set_float(attr_prefix + "quadratic", 0.017f);
+            box_shader.set_vec3(attr_prefix + "position", point_light_positions[i]);
+            box_shader.set_vec3(attr_prefix + "ambient", glm::vec3(0.05f));
+            box_shader.set_vec3(attr_prefix + "diffuse", point_light_colors[i] * glm::vec3(0.5f));
+            box_shader.set_vec3(attr_prefix + "specular", point_light_colors[i] * glm::vec3(1.0f));
+            box_shader.set_float(attr_prefix + "constant", 1.0f);
+            box_shader.set_float(attr_prefix + "linear", 0.07f);
+            box_shader.set_float(attr_prefix + "quadratic", 0.017f);
         }
 
         // Spotlight properties.
-        shader.set_vec3("spotlight.position", camera_pos);
-        shader.set_vec3("spotlight.direction", camera_front);
-        shader.set_float("spotlight.inner_cutoff", glm::cos(glm::radians(12.5f)));
-        shader.set_float("spotlight.outer_cutoff", glm::cos(glm::radians(17.5f)));
+        box_shader.set_vec3("spotlight.position", camera_pos);
+        box_shader.set_vec3("spotlight.direction", camera_front);
+        box_shader.set_float("spotlight.inner_cutoff", glm::cos(glm::radians(12.5f)));
+        box_shader.set_float("spotlight.outer_cutoff", glm::cos(glm::radians(17.5f)));
 
-        shader.set_vec3("spotlight.ambient", glm::vec3(0.0f));
-        shader.set_vec3("spotlight.diffuse", glm::vec3(0.5f));
-        shader.set_vec3("spotlight.specular", glm::vec3(1.0f));
+        box_shader.set_vec3("spotlight.ambient", glm::vec3(0.0f));
+        box_shader.set_vec3("spotlight.diffuse", glm::vec3(0.5f));
+        box_shader.set_vec3("spotlight.specular", glm::vec3(1.0f));
 
-        shader.set_float("spotlight.constant", 1.0f);
-        shader.set_float("spotlight.linear", 0.07f);
-        shader.set_float("spotlight.quadratic", 0.017f);
+        box_shader.set_float("spotlight.constant", 1.0f);
+        box_shader.set_float("spotlight.linear", 0.07f);
+        box_shader.set_float("spotlight.quadratic", 0.017f);
 
         // Material properties.
-        shader.set_float("material.shininess", 32.0f);
+        box_shader.set_float("material.shininess", 32.0f);
 
         // Set MVP matrices.
         glm::mat4 model = glm::mat4(1.0f);
@@ -425,8 +462,8 @@ int main()
         view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
         projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 
-        shader.set_mat4fv("projection", projection);
-        shader.set_mat4fv("view", view);
+        box_shader.set_mat4fv("projection", projection);
+        box_shader.set_mat4fv("view", view);
 
         // Bind map textures.
         glActiveTexture(GL_TEXTURE0);
@@ -442,7 +479,7 @@ int main()
             model = glm::translate(model, cube_positions[i]);
             float angle = 20.0f * i;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            shader.set_mat4fv("model", model);
+            box_shader.set_mat4fv("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
@@ -450,11 +487,11 @@ int main()
          * Draw point lights.
          */
         // Set light shader values.
-        light_source_shader.use();
+        plight_shader.use();
 
         // Set MVP matrices.
-        light_source_shader.set_mat4fv("projection", projection);
-        light_source_shader.set_mat4fv("view", view);
+        plight_shader.set_mat4fv("projection", projection);
+        plight_shader.set_mat4fv("view", view);
 
         // Render point light.
         for (std::size_t i = 0; i < point_light_positions.size(); i++)
@@ -462,8 +499,8 @@ int main()
             model = glm::mat4(1.0f);
             model = glm::translate(model, point_light_positions[i]);
             model = glm::scale(model, glm::vec3(0.2f));
-            light_source_shader.set_mat4fv("model", model);
-            light_source_shader.set_vec3("color", point_light_colors[i]);
+            plight_shader.set_mat4fv("model", model);
+            plight_shader.set_vec3("color", point_light_colors[i]);
             glBindVertexArray(lightVAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
