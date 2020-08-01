@@ -200,16 +200,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
         fov = 45.0f;
 }
 
-unsigned int load_texture()
+unsigned int load_texture(const std::filesystem::path texture_path)
 {
     // Create texture ID.
-    <unsigned int> texture;
+    unsigned int texture;
     glGenTextures(1, &texture);
 
-    /*
-     * Load diffuse box map texture.
-     */
-    // Bind diffuse map texture as the current GL_TEXTURE_2D.
+    // Bind texture as the current GL_TEXTURE_2D.
     glBindTexture(GL_TEXTURE_2D, texture);
 
     // Set texture parameters.
@@ -218,11 +215,11 @@ unsigned int load_texture()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // Load diffuse map image.
+    // Load texture.
     int width;
     int height;
     int num_channels;
-    unsigned char* data = stbi_load(box_diffuse_map.c_str(), &width, &height, &num_channels, 0);
+    unsigned char* data = stbi_load(texture_path.c_str(), &width, &height, &num_channels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -231,9 +228,11 @@ unsigned int load_texture()
     }
     else
     {
-        std::cerr << "Failed to load texture at " << box_diffuse_map << '\n';
+        std::cerr << "Failed to load texture at " << texture_path << '\n';
         stbi_image_free(data);
     }
+
+    return texture;
 }
 
 int main()
@@ -316,67 +315,11 @@ int main()
     Shader box_shader(box_vshader_path.string(), box_fshader_path.string());
     Shader plight_shader(plight_vshader_path.string(), plight_fshader_path.string());
 
-    // /*
-    //  * Load textures.
-    //  */
-    // // Create texture IDs.
-    // std::vector<unsigned int> box_textures(2);
-    // glGenTextures(2, box_textures.data());
-    //
-    // /*
-    //  * Load diffuse box map texture.
-    //  */
-    // // Bind diffuse map texture as the current GL_TEXTURE_2D.
-    // glBindTexture(GL_TEXTURE_2D, box_textures[0]);
-    //
-    // // Set texture parameters.
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //
-    // // Load diffuse map image.
-    // int width;
-    // int height;
-    // int num_channels;
-    // unsigned char* data = stbi_load(box_diffuse_map.c_str(), &width, &height, &num_channels, 0);
-    // if (data)
-    // {
-    //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    //     glGenerateMipmap(GL_TEXTURE_2D);
-    //     stbi_image_free(data);
-    // }
-    // else
-    // {
-    //     std::cerr << "Failed to load texture at " << box_diffuse_map << '\n';
-    //     stbi_image_free(data);
-    // }
-
-    // /*
-    //  * Load specular box map texture.
-    //  */
-    // // Bind specular map texture as the current GL_TEXTURE_2D.
-    // glBindTexture(GL_TEXTURE_2D, box_textures[1]);
-    //
-    // // Set texture parameters.
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //
-    // // Load specular map image.
-    // data = stbi_load(box_specular_map.c_str(), &width, &height, &num_channels, 0);
-    // if (data)
-    // {
-    //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    //     glGenerateMipmap(GL_TEXTURE_2D);
-    //     stbi_image_free(data);
-    // }
-    // else
-    // {
-    //     std::cerr << "Failed to load texture at " << box_specular_map << '\n';
-    //     stbi_image_free(data);
-    // }
+    /*
+     * Load textures.
+     */
+    unsigned int box_diffuse_texture = load_texture(box_diffuse_map);
+    unsigned int box_specular_texture = load_texture(box_specular_map);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -467,9 +410,9 @@ int main()
 
         // Bind map textures.
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, box_textures[0]);
+        glBindTexture(GL_TEXTURE_2D, box_diffuse_texture);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, box_textures[1]);
+        glBindTexture(GL_TEXTURE_2D, box_specular_texture);
 
         // Render cubes.
         glBindVertexArray(cubeVAO);
