@@ -33,6 +33,8 @@ glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 float delta_time = 0.0f;
 float last_frame = 0.0f;
 
+float camera_speed = 2.5f * delta_time;
+
 float lastx = SCREEN_WIDTH / 2;
 float lasty = SCREEN_HEIGHT / 2;
 
@@ -138,7 +140,11 @@ void process_input(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    float camera_speed = 2.5f * delta_time;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera_speed = 5.0f * delta_time;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+        camera_speed = 2.5f * delta_time;
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera_pos += camera_speed * camera_front;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -149,6 +155,11 @@ void process_input(GLFWwindow* window)
         camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera_pos += camera_speed * camera_up;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        camera_pos -= camera_speed * camera_up;
+
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
     {
         std::cout << "camera_pos: " << camera_pos.x << ", " << camera_pos.y << ", " << camera_pos.z << '\n';
         std::cout << "camera_front: " << camera_front.x << ", " << camera_front.y << ", " << camera_front.z << '\n';
