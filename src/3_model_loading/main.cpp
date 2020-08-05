@@ -23,7 +23,8 @@ constexpr std::size_t SCREEN_HEIGHT = 600;
 ModelSettings backpack("backpack", true, 0.5f);
 ModelSettings drone("drone", false, 0.002f);
 
-ModelSettings model_settings = backpack;
+ModelSettings model_settings = drone;
+bool show_mesh = false;
 
 namespace fs = std::filesystem;
 const fs::path shader_path = "src/3_model_loading";
@@ -241,7 +242,8 @@ int main()
      * Set global OpenGL state.
      */
     glEnable(GL_DEPTH_TEST);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    if (show_mesh)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     /*
      * Build buffers and vertex array object.
