@@ -30,7 +30,7 @@ const fs::path backpack_fshader_path = shader_path / "backpack.fs";
 const fs::path backpack_path = "assets/models/backpack";
 const fs::path backpack_model_path = backpack_path / "backpack.obj";
 
-glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 4.0f);
 glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -59,7 +59,7 @@ const std::vector<glm::vec3> point_light_colors{
     glm::vec3(1.0f, 0.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, 1.0f),
-    glm::vec3(0.5f, 0.5f, 0.5f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
 };
 
 const glm::vec3 spotlight_color = glm::vec3(1.0f);
@@ -241,6 +241,7 @@ int main()
      * Set global OpenGL state.
      */
     glEnable(GL_DEPTH_TEST);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     /*
      * Build buffers and vertex array object.
@@ -248,10 +249,7 @@ int main()
 
     // Generate and bind a "vertex array object" (VAO) to store the VBO and
     // corresponding vertex attribute configurations.
-    // unsigned int cubeVAO;
     unsigned int VBO;
-    // glGenVertexArrays(1, &cubeVAO);
-    // glBindVertexArray(cubeVAO);
 
     // Send vertex data to the vertex shader. Do so by allocating GPU memory,
     // which is managed by "vertex buffer objects" (VBOs). Bind VBO to the
@@ -261,15 +259,6 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-    // // Cube position attribute.
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    // glEnableVertexAttribArray(0);
-    // // Cube normal attribute.
-    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    // glEnableVertexAttribArray(1);
-    // // Cube texture coordinates attribute.
-    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    // glEnableVertexAttribArray(2);
 
     // Configure light VAO.
     unsigned int lightVAO;

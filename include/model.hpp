@@ -97,7 +97,7 @@ bool Model::load_model()
     Assimp::Importer importer;
     std::cout << "Importing scene from " << path << '\n';
     const aiScene* scene = importer.ReadFile(path.string(),
-        aiProcess_Triangulate | aiProcess_FlipUVs);
+        aiProcess_Triangulate);
 
     if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
     {
@@ -117,8 +117,10 @@ void Model::process_node(aiNode* node, const aiScene* scene)
     // Process all of the node's meshes, if any.
     for (std::size_t i = 0; i < node->mNumMeshes; i++)
     {
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(process_mesh(mesh, scene));
+        aiMesh* assimp_mesh = scene->mMeshes[node->mMeshes[i]];
+        Mesh my_mesh = process_mesh(assimp_mesh, scene);
+        my_mesh.init();
+        meshes.push_back(my_mesh);
     }
 
     // Process child nodes recursively.
@@ -196,7 +198,6 @@ std::vector<Texture> Model::load_material_textures(aiMaterial* material,
     {
         aiString str;
         material->GetTexture(type, i, &str);
-        // printf("str.C_Str() = %s\n", str.C_Str());
 
         bool skip = false;
 
