@@ -181,10 +181,10 @@ Mesh Model::process_mesh(aiMesh* mesh, const aiScene* scene)
         textures.insert(std::end(textures), std::begin(diffuse_maps),
             std::end(diffuse_maps));
 
-        // std::vector<Texture> specular_maps = load_material_textures(material,
-        //     aiTextureType_SPECULAR, "texture_specular");
-        // textures.insert(std::end(textures), std::begin(specular_maps),
-        //     std::end(specular_maps));
+        std::vector<Texture> specular_maps = load_material_textures(material,
+            aiTextureType_SPECULAR, "texture_specular");
+        textures.insert(std::end(textures), std::begin(specular_maps),
+            std::end(specular_maps));
     }
 
     return Mesh(vertices, indices, textures);

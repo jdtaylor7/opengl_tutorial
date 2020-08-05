@@ -111,14 +111,9 @@ const std::vector<float> vertices = {
 
 const std::vector<glm::vec3> point_light_positions = {
     glm::vec3( 0.7f,  0.2f,  2.0f),
-    glm::vec3( 2.3f, -3.3f, -4.0f),
-    glm::vec3(-4.0f,  2.0f, -12.0f),
+    glm::vec3( 2.3f, -1.0f, -1.5f),
+    glm::vec3(-4.0f,  2.0f, 2.0f),
     glm::vec3( 0.0f,  0.0f, -3.0f),
-};
-
-const std::vector<unsigned int> indices = {
-    0, 1, 3,  // right triangle
-    1, 2, 3,  // left triangle
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -304,13 +299,81 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Initial MVP matrix definitions.
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
+
+        /*
+         * Draw backpack.
+         */
+        backpack_shader.use();
+
+        // Set MVP matrices.
+        model = glm::mat4(1.0f);
+        view = glm::mat4(1.0f);
+        projection = glm::mat4(1.0f);
+
+        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
+        projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+        model = glm::translate(model, glm::vec3(0.0f));
+        model = glm::scale(model, glm::vec3(1.0f));
+
+        // Position properties.
+        backpack_shader.set_vec3("view_pos", camera_pos);
+
+        // Directional light properties.
+        backpack_shader.set_vec3("dir_light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
+
+        backpack_shader.set_vec3("dir_light.ambient", glm::vec3(0.2f));
+        backpack_shader.set_vec3("dir_light.diffuse", glm::vec3(0.5f));
+        backpack_shader.set_vec3("dir_light.specular", glm::vec3(1.0f));
+
+        // Point light properties.
+        for (std::size_t i = 0; i < point_light_positions.size(); i++)
+        {
+            std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
+
+            backpack_shader.set_vec3(attr_prefix + "position", point_light_positions[i]);
+            backpack_shader.set_vec3(attr_prefix + "ambient", glm::vec3(0.05f));
+            backpack_shader.set_vec3(attr_prefix + "diffuse", point_light_colors[i] * glm::vec3(0.5f));
+            backpack_shader.set_vec3(attr_prefix + "specular", point_light_colors[i] * glm::vec3(1.0f));
+            backpack_shader.set_float(attr_prefix + "constant", 1.0f);
+            backpack_shader.set_float(attr_prefix + "linear", 0.07f);
+            backpack_shader.set_float(attr_prefix + "quadratic", 0.017f);
+        }
+
+        // Spotlight properties.
+        backpack_shader.set_vec3("spotlight.position", camera_pos);
+        backpack_shader.set_vec3("spotlight.direction", camera_front);
+        backpack_shader.set_float("spotlight.inner_cutoff", glm::cos(glm::radians(12.5f)));
+        backpack_shader.set_float("spotlight.outer_cutoff", glm::cos(glm::radians(17.5f)));
+
+        backpack_shader.set_vec3("spotlight.ambient", glm::vec3(0.0f));
+        backpack_shader.set_vec3("spotlight.diffuse", glm::vec3(0.5f));
+        backpack_shader.set_vec3("spotlight.specular", glm::vec3(1.0f));
+
+        backpack_shader.set_float("spotlight.constant", 1.0f);
+        backpack_shader.set_float("spotlight.linear", 0.07f);
+        backpack_shader.set_float("spotlight.quadratic", 0.017f);
+
+        // Material properties.
+        backpack_shader.set_float("material.shininess", 32.0f);
+
+        // Render backpack.
+        backpack_shader.set_mat4fv("projection", projection);
+        backpack_shader.set_mat4fv("view", view);
+        backpack_shader.set_mat4fv("model", model);
+
+        backpack_model.draw(backpack_shader);
+
         /*
          * Draw point lights.
          */
         // Set MVP matrices.
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 projection = glm::mat4(1.0f);
+        model = glm::mat4(1.0f);
+        view = glm::mat4(1.0f);
+        projection = glm::mat4(1.0f);
         view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
         projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 
@@ -334,26 +397,6 @@ int main()
         }
 
         /*
-         * Draw backpack.
-         */
-        // Set MVP matrices.
-        model = glm::mat4(1.0f);
-        view = glm::mat4(1.0f);
-        projection = glm::mat4(1.0f);
-
-        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-        projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
-        model = glm::translate(model, glm::vec3(0.0f));
-        model = glm::scale(model, glm::vec3(1.0f));
-
-        backpack_shader.use();
-        backpack_shader.set_mat4fv("projection", projection);
-        backpack_shader.set_mat4fv("view", view);
-        backpack_shader.set_mat4fv("model", model);
-
-        backpack_model.draw(backpack_shader);
-
-        /*
          * Swap buffers and poll I/O events.
          */
         glfwSwapBuffers(window);
@@ -363,7 +406,6 @@ int main()
     /*
      * Clean up.
      */
-    // glDeleteVertexArrays(1, &cubeVAO);
     glDeleteVertexArrays(1, &lightVAO);
     glDeleteBuffers(1, &VBO);
 
