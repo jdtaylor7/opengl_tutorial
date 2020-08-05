@@ -20,15 +20,20 @@
 constexpr std::size_t SCREEN_WIDTH = 800;
 constexpr std::size_t SCREEN_HEIGHT = 600;
 
+ModelSettings backpack("backpack", true, 0.5f);
+ModelSettings drone("drone", false, 0.002f);
+
+ModelSettings model_settings = backpack;
+
 namespace fs = std::filesystem;
 const fs::path shader_path = "src/3_model_loading";
 const fs::path plight_vshader_path = shader_path / "point_light.vs";
 const fs::path plight_fshader_path = shader_path / "point_light.fs";
-const fs::path backpack_vshader_path = shader_path / "backpack.vs";
-const fs::path backpack_fshader_path = shader_path / "backpack.fs";
+const fs::path model_vshader_path = shader_path / "model.vs";
+const fs::path model_fshader_path = shader_path / "model.fs";
 
-const fs::path backpack_path = "assets/models/backpack";
-const fs::path backpack_model_path = backpack_path / "backpack.obj";
+const fs::path model_directory = "assets/models/" + model_settings.name;
+const fs::path model_obj_path = model_directory / (model_settings.name + ".obj");
 
 glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 4.0f);
 glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -269,13 +274,13 @@ int main()
      * Create shader programs.
      */
     Shader plight_shader(plight_vshader_path.string(), plight_fshader_path.string());
-    Shader backpack_shader(backpack_vshader_path.string(), backpack_fshader_path.string());
+    Shader model_shader(model_vshader_path.string(), model_fshader_path.string());
 
     /*
      * Initialize backpack model.
      */
-    Model backpack_model(backpack_model_path);
-    backpack_model.init();
+    Model model_object(model_obj_path, model_settings.flip_textures);
+    model_object.init();
 
     /*
      * Render loop.
@@ -307,7 +312,7 @@ int main()
         /*
          * Draw backpack.
          */
-        backpack_shader.use();
+        model_shader.use();
 
         // Set MVP matrices.
         model = glm::mat4(1.0f);
@@ -317,55 +322,55 @@ int main()
         view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
         projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
         model = glm::translate(model, glm::vec3(0.0f));
-        model = glm::scale(model, glm::vec3(1.0f));
+        model = glm::scale(model, glm::vec3(model_settings.scale_factor));
 
         // Position properties.
-        backpack_shader.set_vec3("view_pos", camera_pos);
+        model_shader.set_vec3("view_pos", camera_pos);
 
         // Directional light properties.
-        backpack_shader.set_vec3("dir_light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
+        model_shader.set_vec3("dir_light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
 
-        backpack_shader.set_vec3("dir_light.ambient", glm::vec3(0.2f));
-        backpack_shader.set_vec3("dir_light.diffuse", glm::vec3(0.5f));
-        backpack_shader.set_vec3("dir_light.specular", glm::vec3(1.0f));
+        model_shader.set_vec3("dir_light.ambient", glm::vec3(0.2f));
+        model_shader.set_vec3("dir_light.diffuse", glm::vec3(0.5f));
+        model_shader.set_vec3("dir_light.specular", glm::vec3(1.0f));
 
         // Point light properties.
         for (std::size_t i = 0; i < point_light_positions.size(); i++)
         {
             std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
 
-            backpack_shader.set_vec3(attr_prefix + "position", point_light_positions[i]);
-            backpack_shader.set_vec3(attr_prefix + "ambient", glm::vec3(0.05f));
-            backpack_shader.set_vec3(attr_prefix + "diffuse", point_light_colors[i] * glm::vec3(0.5f));
-            backpack_shader.set_vec3(attr_prefix + "specular", point_light_colors[i] * glm::vec3(1.0f));
-            backpack_shader.set_float(attr_prefix + "constant", 1.0f);
-            backpack_shader.set_float(attr_prefix + "linear", 0.07f);
-            backpack_shader.set_float(attr_prefix + "quadratic", 0.017f);
+            model_shader.set_vec3(attr_prefix + "position", point_light_positions[i]);
+            model_shader.set_vec3(attr_prefix + "ambient", glm::vec3(0.05f));
+            model_shader.set_vec3(attr_prefix + "diffuse", point_light_colors[i] * glm::vec3(0.5f));
+            model_shader.set_vec3(attr_prefix + "specular", point_light_colors[i] * glm::vec3(1.0f));
+            model_shader.set_float(attr_prefix + "constant", 1.0f);
+            model_shader.set_float(attr_prefix + "linear", 0.07f);
+            model_shader.set_float(attr_prefix + "quadratic", 0.017f);
         }
 
         // Spotlight properties.
-        backpack_shader.set_vec3("spotlight.position", camera_pos);
-        backpack_shader.set_vec3("spotlight.direction", camera_front);
-        backpack_shader.set_float("spotlight.inner_cutoff", glm::cos(glm::radians(12.5f)));
-        backpack_shader.set_float("spotlight.outer_cutoff", glm::cos(glm::radians(17.5f)));
+        model_shader.set_vec3("spotlight.position", camera_pos);
+        model_shader.set_vec3("spotlight.direction", camera_front);
+        model_shader.set_float("spotlight.inner_cutoff", glm::cos(glm::radians(12.5f)));
+        model_shader.set_float("spotlight.outer_cutoff", glm::cos(glm::radians(17.5f)));
 
-        backpack_shader.set_vec3("spotlight.ambient", glm::vec3(0.0f));
-        backpack_shader.set_vec3("spotlight.diffuse", glm::vec3(0.5f));
-        backpack_shader.set_vec3("spotlight.specular", glm::vec3(1.0f));
+        model_shader.set_vec3("spotlight.ambient", glm::vec3(0.0f));
+        model_shader.set_vec3("spotlight.diffuse", glm::vec3(0.5f));
+        model_shader.set_vec3("spotlight.specular", glm::vec3(1.0f));
 
-        backpack_shader.set_float("spotlight.constant", 1.0f);
-        backpack_shader.set_float("spotlight.linear", 0.07f);
-        backpack_shader.set_float("spotlight.quadratic", 0.017f);
+        model_shader.set_float("spotlight.constant", 1.0f);
+        model_shader.set_float("spotlight.linear", 0.07f);
+        model_shader.set_float("spotlight.quadratic", 0.017f);
 
         // Material properties.
-        backpack_shader.set_float("material.shininess", 32.0f);
+        model_shader.set_float("material.shininess", 32.0f);
 
         // Render backpack.
-        backpack_shader.set_mat4fv("projection", projection);
-        backpack_shader.set_mat4fv("view", view);
-        backpack_shader.set_mat4fv("model", model);
+        model_shader.set_mat4fv("projection", projection);
+        model_shader.set_mat4fv("view", view);
+        model_shader.set_mat4fv("model", model);
 
-        backpack_model.draw(backpack_shader);
+        model_object.draw(model_shader);
 
         /*
          * Draw point lights.

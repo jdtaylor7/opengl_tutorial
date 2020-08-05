@@ -25,6 +25,7 @@ unsigned int load_texture_from_file(const std::filesystem::path texture_path)
     int width;
     int height;
     int num_channels;
+    stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(texture_path.c_str(), &width, &height, &num_channels, 0);
     if (data)
     {
@@ -58,11 +59,28 @@ unsigned int load_texture_from_file(const std::filesystem::path texture_path)
     return texture;
 }
 
+struct ModelSettings
+{
+    ModelSettings(std::string name_, bool flip_textures_, float scale_factor_) :
+        name(name_),
+        flip_textures(flip_textures_),
+        scale_factor(scale_factor_)
+    {
+    }
+
+    std::string name;
+    bool flip_textures;
+    float scale_factor;
+};
 
 class Model
 {
 public:
-    explicit Model(std::filesystem::path path_) : path(path_) {}
+    explicit Model(std::filesystem::path path_, bool flip_model_textures_) :
+        path(path_),
+        flip_model_textures(flip_model_textures_)
+    {
+    }
 
     bool init();
     void draw(Shader&);
@@ -72,6 +90,7 @@ private:
     std::filesystem::path path;
     std::filesystem::path directory;
     std::vector<Texture> loaded_textures;
+    bool flip_model_textures;
 
     bool load_model();
     void process_node(aiNode*, const aiScene*);
@@ -94,10 +113,20 @@ void Model::draw(Shader& shader)
 
 bool Model::load_model()
 {
-    Assimp::Importer importer;
     std::cout << "Importing scene from " << path << '\n';
-    const aiScene* scene = importer.ReadFile(path.string(),
-        aiProcess_Triangulate);
+
+    Assimp::Importer importer;
+    const aiScene* scene;
+
+    if (flip_model_textures)
+    {
+        scene = importer.ReadFile(path.string(),
+            aiProcess_Triangulate | aiProcess_FlipUVs);
+    }
+    else
+    {
+        scene = importer.ReadFile(path.string(), aiProcess_Triangulate);
+    }
 
     if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
     {
