@@ -27,7 +27,7 @@ const fs::path plight_fshader_path = shader_path / "point_light.fs";
 const fs::path backpack_vshader_path = shader_path / "backpack.vs";
 const fs::path backpack_fshader_path = shader_path / "backpack.fs";
 
-const fs::path backpack_path = "include/models/backpack";
+const fs::path backpack_path = "assets/models/backpack";
 const fs::path backpack_model_path = backpack_path / "backpack.obj";
 
 glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
