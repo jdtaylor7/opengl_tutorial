@@ -55,7 +55,7 @@ const std::vector<glm::vec3> point_light_colors{
     glm::vec3(1.0f, 0.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, 1.0f),
-    glm::vec3(0.5f, 0.5f, 0.5f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
 };
 
 const glm::vec3 spotlight_color = glm::vec3(1.0f);

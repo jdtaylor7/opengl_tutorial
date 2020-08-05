@@ -11,15 +11,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 # Add packages.
-find_package(OpenGL REQUIRED)
-
 set(CMAKE_PREFIX_PATH /usr/lib/glfw)
+find_package(OpenGL REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
+find_package(ASSIMP REQUIRED)
 
 # Add include directories.
 include_directories(
     "${PROJECT_BINARY_DIR}"
-    "${PROJECT_SOURCE_DIR}/third_party/assimp-3.1.1/include"
     "${PROJECT_SOURCE_DIR}/third_party/GL"
     "${PROJECT_SOURCE_DIR}/third_party/glad/include"
     "${PROJECT_SOURCE_DIR}/third_party/glfw-3.3.2/include"
@@ -30,12 +29,13 @@ include_directories(
 
 # Add library directories.
 link_directories(
-    "${PROJECT_SOURCE_DIR}/third_party/assimp-3.1.1/lib"
+    "${ASSIMP_LIBRARIES}"
 )
 
 # Add compiler/linker options.
 set(CXXOPTS "-O2")
-set(LINKOPTS "-Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11 -lassimp")
+set(LINKOPTS "-Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11")
+# set(LINKOPTS "-Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11 -lassimp")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXOPTS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKOPTS}")
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
@@ -46,7 +46,7 @@ add_library(glad OBJECT third_party/glad/src/glad.c)
 add_library(stb_image OBJECT third_party/stb_image/stb_image.c)
 
 # Link libraries for future targets. Just lazily linking them all here.
-link_libraries(glad stb_image glfw)
+link_libraries(glad stb_image glfw assimp)
 
 #
 # Add executables.
@@ -92,3 +92,6 @@ add_executable(point_light src/2_lighting/5_light_casters/2_point/main.cpp)
 add_executable(spotlight src/2_lighting/5_light_casters/3_spotlight/main.cpp)
 
 add_executable(multiple_lights src/2_lighting/6_multiple_lights/main.cpp)
+
+# Model loading.
+add_executable(model src/3_model_loading/main.cpp)
