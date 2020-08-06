@@ -7,6 +7,9 @@ project(OpenglTutorial)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Build type.
+set(CMAKE_BUILD_TYPE Release)
+
 # Create compilation database for Sourcetrail.
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 

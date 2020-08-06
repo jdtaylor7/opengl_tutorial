@@ -1,6 +1,9 @@
 #ifndef LIGHTS_HPP
 #define LIGHTS_HPP
 
+#include <memory>
+#include <vector>
+
 #include <glm/glm.hpp>
 
 #include "shapes.hpp"
@@ -9,12 +12,19 @@ struct DirectionalLight;
 class PointLight;
 struct Spotlight;
 
-// struct SceneLighting
-// {
-//     DirectionalLight dir;
-//     std::vector<PointLight> points;
-//     Spotlight spot;
-// };
+struct SceneLighting
+{
+    SceneLighting(DirectionalLight* dir_,
+        std::vector<std::shared_ptr<PointLight>> points_,
+        Spotlight* spot_) :
+            dir(dir_), points(points_), spot(spot_)
+    {
+    }
+
+    DirectionalLight* dir;
+    std::vector<std::shared_ptr<PointLight>> points;
+    Spotlight* spot;
+};
 
 struct DirectionalLight
 {
@@ -39,10 +49,24 @@ struct DirectionalLight
 class PointLight
 {
 public:
-    PointLight(glm::vec3 position_, glm::vec3 color_, float scale_factor_) :
-        position(position_),
-        color(color_),
-        scale_factor(scale_factor_)
+    PointLight(glm::vec3 position_,
+        glm::vec3 color_,
+        float scale_factor_,
+        glm::vec3 ambient_,
+        glm::vec3 diffuse_,
+        glm::vec3 specular_,
+        float constant_,
+        float linear_,
+        float quadratic_) :
+            position(position_),
+            color(color_),
+            scale_factor(scale_factor_),
+            ambient(ambient_),
+            diffuse(diffuse_),
+            specular(specular_),
+            constant(constant_),
+            linear(linear_),
+            quadratic(quadratic_)
     {
     }
 
@@ -53,6 +77,14 @@ public:
     glm::vec3 position;
     glm::vec3 color;
     float scale_factor;
+
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
 private:
     unsigned int vao;
     unsigned int vbo;
@@ -111,6 +143,12 @@ struct Spotlight
             linear(linear_),
             quadratic(quadratic_)
     {
+    }
+
+    void update(glm::vec3 pos, glm::vec3 dir)
+    {
+        position = pos;
+        direction = dir;
     }
 
     glm::vec3 position;

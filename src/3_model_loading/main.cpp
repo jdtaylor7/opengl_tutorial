@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -20,8 +21,8 @@
 #include "room.hpp"
 #include "shader.hpp"
 
-constexpr std::size_t SCREEN_WIDTH = 800;
-constexpr std::size_t SCREEN_HEIGHT = 600;
+constexpr float SCREEN_WIDTH = 800.0f;
+constexpr float SCREEN_HEIGHT = 600.0f;
 
 ModelSettings backpack("backpack", true, 0.5f);
 ModelSettings drone("drone", false, 0.002f);
@@ -29,7 +30,7 @@ ModelSettings drone("drone", false, 0.002f);
 ModelSettings model_settings = drone;
 bool show_mesh = false;
 
-float room_scale_factor = 4.0f;
+float room_scale_factor = 24.0f;
 
 namespace fs = std::filesystem;
 const fs::path shader_path = "src/3_model_loading";
@@ -72,8 +73,23 @@ float fov = 45.0f;
 
 const glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
 
-const glm::vec3 dir_light_color = glm::vec3(1.0f);
+/*
+ * Light settings.
+ */
+// Shared.
+const float light_attenuation_constant = 1.0f;
+const float light_attenuation_linear = 0.07f;
+const float light_attenuation_quadratic = 0.017f;
 
+const glm::vec3 diffuse_light_intensity = glm::vec3(0.5f);
+const glm::vec3 specular_light_intensity = glm::vec3(1.0f);
+
+// Directional light.
+const glm::vec3 directional_light_ambient_intensity = glm::vec3(0.2f);
+const glm::vec3 directional_light_direction = glm::vec3(0.0f, -1.0f, 0.0f);
+
+// Point lights.
+const glm::vec3 point_light_ambient_intensity = glm::vec3(0.05f);
 const std::vector<glm::vec3> point_light_colors{
     glm::vec3(1.0f, 0.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f),
@@ -90,7 +106,13 @@ const std::vector<glm::vec3> point_light_positions = {
 
 const float point_light_scale_factor = 0.2f;
 
+// Spotlight.
 const glm::vec3 spotlight_color = glm::vec3(1.0f);
+const glm::vec3 spotlight_ambient_intensity = glm::vec3(0.0f);
+glm::vec3 spotlight_position = camera_pos;
+glm::vec3 spotlight_direction = camera_front;
+const float spotlight_inner_cutoff = 12.5f;  // Degrees
+const float spotlight_outer_cutoff = 17.5f;  // Degrees
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -223,6 +245,64 @@ int main()
     Shader floor_shader(floor_vshader_path.string(), floor_fshader_path.string());
 
     /*
+     * Initialize lights.
+     */
+    // Directional lights.
+    auto directional_light = std::make_unique<DirectionalLight>(
+        directional_light_direction,
+        directional_light_ambient_intensity,
+        diffuse_light_intensity,
+        specular_light_intensity
+    );
+
+    // Point lights.
+    assert(point_light_positions.size() == point_light_colors.size());
+    // std::vector<PointLight> point_lights;
+    std::vector<std::shared_ptr<PointLight>> point_lights;
+    for (std::size_t i = 0; i < point_light_positions.size(); i++)
+    {
+        // PointLight point_light(point_light_positions[i],
+        //     point_light_colors[i],
+        //     point_light_scale_factor);
+        // point_light.init();
+        // point_lights.push_back(point_light);
+        auto point_light = std::make_shared<PointLight>(
+            point_light_positions[i],
+            point_light_colors[i],
+            point_light_scale_factor,
+            point_light_ambient_intensity,
+            diffuse_light_intensity,
+            specular_light_intensity,
+            light_attenuation_constant,
+            light_attenuation_linear,
+            light_attenuation_quadratic
+        );
+        point_light->init();
+        point_lights.push_back(point_light);
+    }
+
+    // Spotlight.
+    auto spotlight = std::make_unique<Spotlight>(
+        spotlight_position,
+        spotlight_direction,
+        spotlight_inner_cutoff,
+        spotlight_outer_cutoff,
+        spotlight_ambient_intensity,
+        diffuse_light_intensity,
+        specular_light_intensity,
+        light_attenuation_constant,
+        light_attenuation_linear,
+        light_attenuation_quadratic
+    );
+
+    // Scene lighting.
+    auto scene_lighting = std::make_unique<SceneLighting>(
+        directional_light.get(),
+        point_lights,
+        spotlight.get()
+    );
+
+    /*
      * Initialize model.
      */
     Model model_object(model_obj_path, model_settings.flip_textures);
@@ -234,22 +314,10 @@ int main()
     Room room(floor_shader,
         floor_diffuse_path,
         floor_specular_path,
-        floor_normal_path);
+        floor_normal_path,
+        scene_lighting.get()
+    );
     room.init();
-
-    /*
-     * Initialize point lights.
-     */
-    assert(point_light_positions.size() == point_light_colors.size());
-    std::vector<PointLight> point_lights;
-    for (std::size_t i = 0; i < point_light_positions.size(); i++)
-    {
-        PointLight point_light(point_light_positions[i],
-            point_light_colors[i],
-            point_light_scale_factor);
-        point_light.init();
-        point_lights.push_back(point_light);
-    }
 
     /*
      * Render loop.
@@ -277,18 +345,17 @@ int main()
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
 
+        // Set view and projection matrices.
+        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
+        projection = glm::perspective(glm::radians(fov), SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
+
         /*
          * Draw backpack.
          */
         model_shader.use();
 
-        // Set MVP matrices.
+        // Set model matrix.
         model = glm::mat4(1.0f);
-        view = glm::mat4(1.0f);
-        projection = glm::mat4(1.0f);
-
-        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-        projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
         model = glm::translate(model, glm::vec3(0.0f));
         model = glm::scale(model, glm::vec3(model_settings.scale_factor));
 
@@ -344,14 +411,6 @@ int main()
         /*
          * Draw point lights.
          */
-        // Set MVP matrices.
-        model = glm::mat4(1.0f);
-        view = glm::mat4(1.0f);
-        projection = glm::mat4(1.0f);
-        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-        projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
-
-        // Set light shader values.
         plight_shader.use();
 
         // Set MVP matrices.
@@ -362,11 +421,11 @@ int main()
         for (auto& point_light : point_lights)
         {
             model = glm::mat4(1.0f);
-            model = glm::translate(model, point_light.position);
-            model = glm::scale(model, glm::vec3(point_light.scale_factor));
+            model = glm::translate(model, point_light->position);
+            model = glm::scale(model, glm::vec3(point_light->scale_factor));
             plight_shader.set_mat4fv("model", model);
-            plight_shader.set_vec3("color", point_light.color);
-            point_light.draw();
+            plight_shader.set_vec3("color", point_light->color);
+            point_light->draw();
         }
 
         /*
@@ -374,13 +433,8 @@ int main()
          */
         floor_shader.use();
 
-        // Set MVP matrices.
+        // Set model matrix.
         model = glm::mat4(1.0f);
-        view = glm::mat4(1.0f);
-        projection = glm::mat4(1.0f);
-
-        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-        projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
         model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
         model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(room_scale_factor));
@@ -388,44 +442,10 @@ int main()
         // Position properties.
         floor_shader.set_vec3("view_pos", camera_pos);
 
-        // Directional light properties.
-        // TODO remove lighting updates from here, put in room class
-        floor_shader.set_vec3("dir_light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
-
-        floor_shader.set_vec3("dir_light.ambient", glm::vec3(0.2f));
-        floor_shader.set_vec3("dir_light.diffuse", glm::vec3(0.5f));
-        floor_shader.set_vec3("dir_light.specular", glm::vec3(1.0f));
-
-        // Point light properties.
-        for (std::size_t i = 0; i < point_light_positions.size(); i++)
-        {
-            std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
-
-            floor_shader.set_vec3(attr_prefix + "position", point_light_positions[i]);
-            floor_shader.set_vec3(attr_prefix + "ambient", glm::vec3(0.05f));
-            floor_shader.set_vec3(attr_prefix + "diffuse", point_light_colors[i] * glm::vec3(0.5f));
-            floor_shader.set_vec3(attr_prefix + "specular", point_light_colors[i] * glm::vec3(1.0f));
-            floor_shader.set_float(attr_prefix + "constant", 1.0f);
-            floor_shader.set_float(attr_prefix + "linear", 0.07f);
-            floor_shader.set_float(attr_prefix + "quadratic", 0.017f);
-        }
-
-        // Spotlight properties.
-        floor_shader.set_vec3("spotlight.position", camera_pos);  // TODO keep here
-        floor_shader.set_vec3("spotlight.direction", camera_front);  // TODO keep here
-        floor_shader.set_float("spotlight.inner_cutoff", glm::cos(glm::radians(12.5f)));
-        floor_shader.set_float("spotlight.outer_cutoff", glm::cos(glm::radians(17.5f)));
-
-        floor_shader.set_vec3("spotlight.ambient", glm::vec3(0.0f));
-        floor_shader.set_vec3("spotlight.diffuse", glm::vec3(0.5f));
-        floor_shader.set_vec3("spotlight.specular", glm::vec3(1.0f));
-
-        floor_shader.set_float("spotlight.constant", 1.0f);
-        floor_shader.set_float("spotlight.linear", 0.07f);
-        floor_shader.set_float("spotlight.quadratic", 0.017f);
-
         // Material properties.
         floor_shader.set_float("material.shininess", 32.0f);
+
+        spotlight->update(camera_pos, camera_front);
 
         floor_shader.set_mat4fv("projection", projection);
         floor_shader.set_mat4fv("view", view);
@@ -445,7 +465,7 @@ int main()
      */
     model_object.deinit();
     for (auto& point_light : point_lights)
-        point_light.deinit();
+        point_light->deinit();
     room.deinit();
 
     glfwTerminate();
