@@ -1,9 +1,21 @@
-#ifndef CUBE_HPP
-#define CUBE_HPP
+#ifndef SHAPES_HPP
+#define SHAPES_HPP
 
+const std::vector<float> square_vertices = {
+    // positions         // colors          // texture coords
+     0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,  // top right
+     0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  // top left
+};
+
+const std::vector<unsigned int> square_indices = {
+    0, 1, 3,  // right triangle
+    1, 2, 3,  // left triangle
+};
 
 const std::vector<float> cube_vertices = {
-    // positions                 // normals    // texture coords
+    // positions          // normals           // texture coords
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
      0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
      0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
@@ -47,4 +59,4 @@ const std::vector<float> cube_vertices = {
     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
 };
 
-#endif /* CUBE_HPP */
+#endif /* SHAPES_HPP */

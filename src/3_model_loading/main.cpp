@@ -17,6 +17,7 @@
 #include "mesh.hpp"
 #include "model.hpp"
 #include "point_light.hpp"
+#include "room.hpp"
 #include "shader.hpp"
 
 constexpr std::size_t SCREEN_WIDTH = 800;
@@ -28,6 +29,8 @@ ModelSettings drone("drone", false, 0.002f);
 ModelSettings model_settings = drone;
 bool show_mesh = false;
 
+float room_scale_factor = 4.0f;
+
 namespace fs = std::filesystem;
 const fs::path shader_path = "src/3_model_loading";
 const fs::path texture_path = "src/assets/textures";
@@ -36,8 +39,8 @@ const fs::path plight_vshader_path = shader_path / "point_light.vs";
 const fs::path plight_fshader_path = shader_path / "point_light.fs";
 const fs::path model_vshader_path = shader_path / "model.vs";
 const fs::path model_fshader_path = shader_path / "model.fs";
-const fs::path room_vshader_path = shader_path / "room.vs";
-const fs::path room_fshader_path = shader_path / "room.fs";
+const fs::path floor_vshader_path = shader_path / "floor.vs";
+const fs::path floor_fshader_path = shader_path / "floor.fs";
 
 const fs::path model_directory = "assets/models/" + model_settings.name;
 const fs::path model_obj_path = model_directory / (model_settings.name + ".obj");
@@ -86,19 +89,6 @@ const std::vector<glm::vec3> point_light_positions = {
 const float point_light_scale_factor = 0.2f;
 
 const glm::vec3 spotlight_color = glm::vec3(1.0f);
-
-const std::vector<float> floor_vertices = {
-    // positions         // colors          // texture coords
-     0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,  // top right
-     0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  // top left
-};
-
-const std::vector<unsigned int> floor_indices = {
-    0, 1, 3,  // right triangle
-    1, 2, 3,  // left triangle
-};
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -228,7 +218,7 @@ int main()
      */
     Shader plight_shader(plight_vshader_path.string(), plight_fshader_path.string());
     Shader model_shader(model_vshader_path.string(), model_fshader_path.string());
-    Shader room_shader(room_vshader_path.string(), room_fshader_path.string());
+    Shader floor_shader(floor_vshader_path.string(), floor_fshader_path.string());
 
     /*
      * Initialize model.
@@ -239,7 +229,8 @@ int main()
     /*
      * Initialize room.
      */
-
+    Room room(floor_shader, floor_diffuse_path);
+    room.init();
 
     /*
      * Initialize point lights.
@@ -255,10 +246,10 @@ int main()
         point_lights.push_back(point_light);
     }
 
-    /*
-     * Create floor texture.
-     */
-    unsigned int floor_diffuse_texture = load_texture_from_file(floor_diffuse_path);
+    // /*
+    //  * Create floor texture.
+    //  */
+    // unsigned int floor_diffuse_texture = load_texture_from_file(floor_diffuse_path);
 
     /*
      * Render loop.
@@ -377,27 +368,21 @@ int main()
             point_light.draw();
         }
 
-        // /*
-        //  * Draw floor.
-        //  */
-        // room_shader.use();
-        //
-        // model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
-        // model = glm::scale(model, glm::vec3(1.0f));
-        //
-        // room_shader.set_mat4fv("projection", projection);
-        // room_shader.set_mat4fv("view", view);
-        // room_shader.set_mat4fv("model", model);
-        //
-        // room_shader.set_float("material.texture_diffuse1", floor_diffuse_texture);
-        //
-        // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, floor_diffuse_texture);
-        // glBindVertexArray(VAO);
-        // glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        // glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floor_vertices.size(), floor_vertices.data(), GL_STATIC_DRAW);
-        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        /*
+         * Draw floor.
+         */
+        floor_shader.use();
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(room_scale_factor));
+
+        floor_shader.set_mat4fv("projection", projection);
+        floor_shader.set_mat4fv("view", view);
+        floor_shader.set_mat4fv("model", model);
+
+        room.draw();
 
         /*
          * Swap buffers and poll I/O events.
