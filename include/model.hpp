@@ -40,6 +40,7 @@ public:
     }
 
     bool init();
+    void deinit();
     void draw(Shader&);
 private:
     // Model data.
@@ -60,6 +61,12 @@ private:
 bool Model::init()
 {
     return load_model();
+}
+
+void Model::deinit()
+{
+    for (auto& mesh : meshes)
+        mesh.deinit();
 }
 
 void Model::draw(Shader& shader)

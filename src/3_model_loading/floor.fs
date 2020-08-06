@@ -143,23 +143,21 @@ vec3 calc_spotlight(Spotlight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
 
 void main()
 {
-    // // Precomputed values for light calcs.
-    // vec3 normal = normalize(normal_vec);
-    // vec3 view_dir = normalize(view_pos - frag_pos);
-    //
-    // vec3 result = vec3(0.0f);
-    //
-    // // Directional light.
-    // result += calc_dir_light(dir_light, normal, view_dir);
-    //
-    // // Point lights.
-    // for (int i = 0; i < NUM_POINT_LIGHTS; i++)
-    //     result += calc_point_light(point_lights[i], normal, frag_pos, view_dir);
-    //
-    // // Spotlight.
-    // result += calc_spotlight(spotlight, normal, frag_pos, view_dir);
-    //
-    // frag_color = vec4(result, 1.0f);
+    // Precomputed values for light calcs.
+    vec3 normal = normalize(normal_vec);
+    vec3 view_dir = normalize(view_pos - frag_pos);
 
-    frag_color = texture(material.texture_diffuse1, tex_coords);
+    vec3 result = vec3(0.0f);
+
+    // Directional light.
+    result += calc_dir_light(dir_light, normal, view_dir);
+
+    // Point lights.
+    for (int i = 0; i < NUM_POINT_LIGHTS; i++)
+        result += calc_point_light(point_lights[i], normal, frag_pos, view_dir);
+
+    // Spotlight.
+    // result += calc_spotlight(spotlight, normal, frag_pos, view_dir);
+
+    frag_color = vec4(result, 1.0f);
 }

@@ -31,6 +31,7 @@ public:
     Mesh(std::vector<Vertex>, std::vector<unsigned int>, std::vector<Texture>);
 
     void init();
+    void deinit();
     void draw(Shader&);
 private:
     std::vector<Vertex> vertices;
@@ -78,6 +79,13 @@ void Mesh::init()
     glBindVertexArray(0);
 }
 
+void Mesh::deinit()
+{
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
+}
+
 void Mesh::draw(Shader& shader)
 {
     unsigned int diffuse_num = 1;
@@ -86,6 +94,7 @@ void Mesh::draw(Shader& shader)
     for (std::size_t i = 0; i < textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, textures[i].id);
 
         std::string num;
         std::string name = textures[i].type;
@@ -95,7 +104,6 @@ void Mesh::draw(Shader& shader)
             num = std::to_string(specular_num++);
 
         shader.set_float("material." + name + num, i);
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
     // Draw mesh.
     glBindVertexArray(vao);
