@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <filesystem>
 #include <string>
@@ -15,6 +16,7 @@
 
 #include "mesh.hpp"
 #include "model.hpp"
+#include "point_light.hpp"
 #include "shader.hpp"
 
 constexpr std::size_t SCREEN_WIDTH = 800;
@@ -28,13 +30,19 @@ bool show_mesh = false;
 
 namespace fs = std::filesystem;
 const fs::path shader_path = "src/3_model_loading";
+const fs::path texture_path = "src/assets/textures";
+
 const fs::path plight_vshader_path = shader_path / "point_light.vs";
 const fs::path plight_fshader_path = shader_path / "point_light.fs";
 const fs::path model_vshader_path = shader_path / "model.vs";
 const fs::path model_fshader_path = shader_path / "model.fs";
+const fs::path room_vshader_path = shader_path / "room.vs";
+const fs::path room_fshader_path = shader_path / "room.fs";
 
 const fs::path model_directory = "assets/models/" + model_settings.name;
 const fs::path model_obj_path = model_directory / (model_settings.name + ".obj");
+
+const fs::path floor_diffuse_path = texture_path / "stone_floor/diffuse.png";
 
 glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 4.0f);
 glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -68,58 +76,28 @@ const std::vector<glm::vec3> point_light_colors{
     glm::vec3(1.0f, 1.0f, 1.0f),
 };
 
-const glm::vec3 spotlight_color = glm::vec3(1.0f);
-
-const std::vector<float> vertices = {
-    // positions                 // normals    // texture coords
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-};
-
 const std::vector<glm::vec3> point_light_positions = {
     glm::vec3( 0.7f,  0.2f,  2.0f),
     glm::vec3( 2.3f, -1.0f, -1.5f),
     glm::vec3(-4.0f,  2.0f, 2.0f),
     glm::vec3( 0.0f,  0.0f, -3.0f),
+};
+
+const float point_light_scale_factor = 0.2f;
+
+const glm::vec3 spotlight_color = glm::vec3(1.0f);
+
+const std::vector<float> floor_vertices = {
+    // positions         // colors          // texture coords
+     0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,  // top right
+     0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  // top left
+};
+
+const std::vector<unsigned int> floor_indices = {
+    0, 1, 3,  // right triangle
+    1, 2, 3,  // left triangle
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -246,43 +224,41 @@ int main()
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     /*
-     * Build buffers and vertex array object.
-     */
-
-    // Generate and bind a "vertex array object" (VAO) to store the VBO and
-    // corresponding vertex attribute configurations.
-    unsigned int VBO;
-
-    // Send vertex data to the vertex shader. Do so by allocating GPU memory,
-    // which is managed by "vertex buffer objects" (VBOs). Bind VBO to the
-    // vertex buffer object, GL_ARRAY_BUFFER. Buffer operations on
-    // GL_ARRAY_BUFFER then apply to VBO.
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-
-    // Configure light VAO.
-    unsigned int lightVAO;
-    glGenVertexArrays(1, &lightVAO);
-    glBindVertexArray(lightVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // Light position attribute.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    /*
      * Create shader programs.
      */
     Shader plight_shader(plight_vshader_path.string(), plight_fshader_path.string());
     Shader model_shader(model_vshader_path.string(), model_fshader_path.string());
+    Shader room_shader(room_vshader_path.string(), room_fshader_path.string());
 
     /*
-     * Initialize backpack model.
+     * Initialize model.
      */
     Model model_object(model_obj_path, model_settings.flip_textures);
     model_object.init();
+
+    /*
+     * Initialize room.
+     */
+
+
+    /*
+     * Initialize point lights.
+     */
+    assert(point_light_positions.size() == point_light_colors.size());
+    std::vector<PointLight> point_lights;
+    for (std::size_t i = 0; i < point_light_positions.size(); i++)
+    {
+        PointLight point_light(point_light_positions[i],
+            point_light_colors[i],
+            point_light_scale_factor);
+        point_light.init();
+        point_lights.push_back(point_light);
+    }
+
+    /*
+     * Create floor texture.
+     */
+    unsigned int floor_diffuse_texture = load_texture_from_file(floor_diffuse_path);
 
     /*
      * Render loop.
@@ -301,7 +277,6 @@ int main()
         /*
          * Render.
          */
-
         // Color buffer.
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -392,16 +367,37 @@ int main()
         plight_shader.set_mat4fv("view", view);
 
         // Render point light.
-        for (std::size_t i = 0; i < point_light_positions.size(); i++)
+        for (auto& point_light : point_lights)
         {
             model = glm::mat4(1.0f);
-            model = glm::translate(model, point_light_positions[i]);
-            model = glm::scale(model, glm::vec3(0.2f));
+            model = glm::translate(model, point_light.get_position());
+            model = glm::scale(model, glm::vec3(point_light.get_scale_factor()));
             plight_shader.set_mat4fv("model", model);
-            plight_shader.set_vec3("color", point_light_colors[i]);
-            glBindVertexArray(lightVAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            plight_shader.set_vec3("color", point_light.get_color());
+            point_light.draw();
         }
+
+        // /*
+        //  * Draw floor.
+        //  */
+        // room_shader.use();
+        //
+        // model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
+        // model = glm::scale(model, glm::vec3(1.0f));
+        //
+        // room_shader.set_mat4fv("projection", projection);
+        // room_shader.set_mat4fv("view", view);
+        // room_shader.set_mat4fv("model", model);
+        //
+        // room_shader.set_float("material.texture_diffuse1", floor_diffuse_texture);
+        //
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, floor_diffuse_texture);
+        // glBindVertexArray(VAO);
+        // glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        // glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floor_vertices.size(), floor_vertices.data(), GL_STATIC_DRAW);
+        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         /*
          * Swap buffers and poll I/O events.
@@ -410,11 +406,11 @@ int main()
         glfwPollEvents();
     }
 
-    /*
-     * Clean up.
-     */
-    glDeleteVertexArrays(1, &lightVAO);
-    glDeleteBuffers(1, &VBO);
+    // /*
+    //  * Clean up.
+    //  */
+    // glDeleteVertexArrays(1, &lightVAO);
+    // glDeleteBuffers(1, &VBO);
 
     glfwTerminate();
     return 0;
