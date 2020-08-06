@@ -9,6 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "lights.hpp"
 #include "shader.hpp"
 
 struct Vertex
@@ -28,12 +29,26 @@ struct Texture
 class Mesh
 {
 public:
-    Mesh(std::vector<Vertex>, std::vector<unsigned int>, std::vector<Texture>);
+    Mesh(std::vector<Vertex> vertices_,
+        std::vector<unsigned int> indices_,
+        std::vector<Texture> textures_,
+        Shader* shader_,
+        SceneLighting* scene_lighting_) :
+            vertices(vertices_),
+            indices(indices_),
+            textures(textures_),
+            shader(shader_),
+            sl(scene_lighting_)
+    {
+    }
 
     void init();
     void deinit();
-    void draw(Shader&);
+    void draw();
 private:
+    Shader* shader;
+    SceneLighting* sl;
+
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
@@ -42,15 +57,6 @@ private:
     unsigned int vbo;
     unsigned int ebo;
 };
-
-Mesh::Mesh(std::vector<Vertex> vertices_,
-           std::vector<unsigned int> indices_,
-           std::vector<Texture> textures_) :
-    vertices(vertices_),
-    indices(indices_),
-    textures(textures_)
-{
-}
 
 void Mesh::init()
 {
@@ -86,8 +92,81 @@ void Mesh::deinit()
     glDeleteBuffers(1, &ebo);
 }
 
-void Mesh::draw(Shader& shader)
+void Mesh::draw()
 {
+    // Set shader attributes.
+
+    if (sl)
+    {
+        shader->use();
+        
+        // Directional light properties.
+        if (sl->dir)
+        {
+            shader->set_vec3("dir_light.direction", sl->dir->direction);
+
+            shader->set_vec3("dir_light.ambient", sl->dir->ambient);
+            shader->set_vec3("dir_light.diffuse", sl->dir->diffuse);
+            shader->set_vec3("dir_light.specular", sl->dir->specular);
+        }
+        else
+        {
+            std::cerr << "Room::draw: SceneLighting->DirectionalLight pointer is null.\n";
+        }
+
+        // Point light properties.
+        for (std::size_t i = 0; i < sl->points.size(); i++)
+        {
+            std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
+
+            if (sl->points[i])
+            {
+                shader->set_vec3(attr_prefix + "position", sl->points[i]->position);
+                shader->set_vec3(attr_prefix + "ambient", sl->points[i]->ambient);
+                shader->set_vec3(attr_prefix + "diffuse", sl->points[i]->color * sl->points[i]->diffuse);
+                shader->set_vec3(attr_prefix + "specular", sl->points[i]->color * sl->points[i]->specular);
+                shader->set_float(attr_prefix + "constant", sl->points[i]->constant);
+                shader->set_float(attr_prefix + "linear", sl->points[i]->linear);
+                shader->set_float(attr_prefix + "quadratic", sl->points[i]->quadratic);
+            }
+            else
+            {
+                std::cerr << "Room::draw: SceneLighting->PointLight pointer is null.\n";
+            }
+        }
+
+        // Spotlight properties.
+        if (sl->spot)
+        {
+            shader->set_vec3("spotlight.position", sl->spot->position);
+            shader->set_vec3("spotlight.direction", sl->spot->direction);
+
+            shader->set_float("spotlight.inner_cutoff", glm::cos(glm::radians(sl->spot->inner_cutoff)));
+            shader->set_float("spotlight.outer_cutoff", glm::cos(glm::radians(sl->spot->outer_cutoff)));
+
+            shader->set_vec3("spotlight.ambient", sl->spot->ambient);
+            shader->set_vec3("spotlight.diffuse", sl->spot->diffuse);
+            shader->set_vec3("spotlight.specular", sl->spot->specular);
+
+            shader->set_float("spotlight.constant", sl->spot->constant);
+            shader->set_float("spotlight.linear", sl->spot->linear);
+            shader->set_float("spotlight.quadratic", sl->spot->quadratic);
+        }
+        else
+        {
+            std::cerr << "Room::draw: SceneLighting->Spotlight pointer is null.\n";
+        }
+
+        // // Material properties.
+        // shader->set_float("material.shininess", 32.0f);
+    }
+    else
+    {
+        std::cerr << "Room::draw: SceneLighting pointer is null.\n";
+    }
+
+
+    // Set textures.
     unsigned int diffuse_num = 1;
     unsigned int specular_num = 1;
 
@@ -103,7 +182,7 @@ void Mesh::draw(Shader& shader)
         else if (name == "texture_specular")
             num = std::to_string(specular_num++);
 
-        shader.set_float("material." + name + num, i);
+        shader->set_float("material." + name + num, i);
     }
     // Draw mesh.
     glBindVertexArray(vao);

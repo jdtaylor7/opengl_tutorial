@@ -241,8 +241,8 @@ int main()
      * Create shader programs.
      */
     Shader plight_shader(plight_vshader_path.string(), plight_fshader_path.string());
-    Shader model_shader(model_vshader_path.string(), model_fshader_path.string());
-    Shader floor_shader(floor_vshader_path.string(), floor_fshader_path.string());
+    auto model_shader = std::make_unique<Shader>(model_vshader_path.string(), model_fshader_path.string());
+    auto floor_shader = std::make_unique<Shader>(floor_vshader_path.string(), floor_fshader_path.string());
 
     /*
      * Initialize lights.
@@ -252,20 +252,13 @@ int main()
         directional_light_direction,
         directional_light_ambient_intensity,
         diffuse_light_intensity,
-        specular_light_intensity
-    );
+        specular_light_intensity);
 
     // Point lights.
     assert(point_light_positions.size() == point_light_colors.size());
-    // std::vector<PointLight> point_lights;
     std::vector<std::shared_ptr<PointLight>> point_lights;
     for (std::size_t i = 0; i < point_light_positions.size(); i++)
     {
-        // PointLight point_light(point_light_positions[i],
-        //     point_light_colors[i],
-        //     point_light_scale_factor);
-        // point_light.init();
-        // point_lights.push_back(point_light);
         auto point_light = std::make_shared<PointLight>(
             point_light_positions[i],
             point_light_colors[i],
@@ -275,8 +268,7 @@ int main()
             specular_light_intensity,
             light_attenuation_constant,
             light_attenuation_linear,
-            light_attenuation_quadratic
-        );
+            light_attenuation_quadratic);
         point_light->init();
         point_lights.push_back(point_light);
     }
@@ -292,32 +284,32 @@ int main()
         specular_light_intensity,
         light_attenuation_constant,
         light_attenuation_linear,
-        light_attenuation_quadratic
-    );
+        light_attenuation_quadratic);
 
     // Scene lighting.
     auto scene_lighting = std::make_unique<SceneLighting>(
         directional_light.get(),
         point_lights,
-        spotlight.get()
-    );
-
-    /*
-     * Initialize model.
-     */
-    Model model_object(model_obj_path, model_settings.flip_textures);
-    model_object.init();
+        spotlight.get());
 
     /*
      * Initialize room.
      */
-    Room room(floor_shader,
+    Room room(floor_shader.get(),
         floor_diffuse_path,
         floor_specular_path,
         floor_normal_path,
-        scene_lighting.get()
-    );
+        scene_lighting.get());
     room.init();
+
+    /*
+     * Initialize model.
+     */
+    Model model_object(model_obj_path,
+        model_settings.flip_textures,
+        model_shader.get(),
+        scene_lighting.get());
+    model_object.init();
 
     /*
      * Render loop.
@@ -350,65 +342,6 @@ int main()
         projection = glm::perspective(glm::radians(fov), SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
 
         /*
-         * Draw backpack.
-         */
-        model_shader.use();
-
-        // Set model matrix.
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f));
-        model = glm::scale(model, glm::vec3(model_settings.scale_factor));
-
-        // Position properties.
-        model_shader.set_vec3("view_pos", camera_pos);
-
-        // Directional light properties.
-        // TODO remove lighting updates from here, put in model class
-        model_shader.set_vec3("dir_light.direction", glm::vec3(0.0f, -1.0f, 0.0f));
-
-        model_shader.set_vec3("dir_light.ambient", glm::vec3(0.2f));
-        model_shader.set_vec3("dir_light.diffuse", glm::vec3(0.5f));
-        model_shader.set_vec3("dir_light.specular", glm::vec3(1.0f));
-
-        // Point light properties.
-        for (std::size_t i = 0; i < point_light_positions.size(); i++)
-        {
-            std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
-
-            model_shader.set_vec3(attr_prefix + "position", point_light_positions[i]);
-            model_shader.set_vec3(attr_prefix + "ambient", glm::vec3(0.05f));
-            model_shader.set_vec3(attr_prefix + "diffuse", point_light_colors[i] * glm::vec3(0.5f));
-            model_shader.set_vec3(attr_prefix + "specular", point_light_colors[i] * glm::vec3(1.0f));
-            model_shader.set_float(attr_prefix + "constant", 1.0f);
-            model_shader.set_float(attr_prefix + "linear", 0.07f);
-            model_shader.set_float(attr_prefix + "quadratic", 0.017f);
-        }
-
-        // Spotlight properties.
-        model_shader.set_vec3("spotlight.position", camera_pos);
-        model_shader.set_vec3("spotlight.direction", camera_front);
-        model_shader.set_float("spotlight.inner_cutoff", glm::cos(glm::radians(12.5f)));
-        model_shader.set_float("spotlight.outer_cutoff", glm::cos(glm::radians(17.5f)));
-
-        model_shader.set_vec3("spotlight.ambient", glm::vec3(0.0f));
-        model_shader.set_vec3("spotlight.diffuse", glm::vec3(0.5f));
-        model_shader.set_vec3("spotlight.specular", glm::vec3(1.0f));
-
-        model_shader.set_float("spotlight.constant", 1.0f);
-        model_shader.set_float("spotlight.linear", 0.07f);
-        model_shader.set_float("spotlight.quadratic", 0.017f);
-
-        // Material properties.
-        model_shader.set_float("material.shininess", 32.0f);
-
-        // Render backpack.
-        model_shader.set_mat4fv("projection", projection);
-        model_shader.set_mat4fv("view", view);
-        model_shader.set_mat4fv("model", model);
-
-        model_object.draw(model_shader);
-
-        /*
          * Draw point lights.
          */
         plight_shader.use();
@@ -431,7 +364,7 @@ int main()
         /*
          * Draw floor.
          */
-        floor_shader.use();
+        floor_shader->use();
 
         // Set model matrix.
         model = glm::mat4(1.0f);
@@ -440,18 +373,41 @@ int main()
         model = glm::scale(model, glm::vec3(room_scale_factor));
 
         // Position properties.
-        floor_shader.set_vec3("view_pos", camera_pos);
+        floor_shader->set_vec3("view_pos", camera_pos);
 
         // Material properties.
-        floor_shader.set_float("material.shininess", 32.0f);
+        floor_shader->set_float("material.shininess", 32.0f);
 
         spotlight->update(camera_pos, camera_front);
 
-        floor_shader.set_mat4fv("projection", projection);
-        floor_shader.set_mat4fv("view", view);
-        floor_shader.set_mat4fv("model", model);
+        floor_shader->set_mat4fv("projection", projection);
+        floor_shader->set_mat4fv("view", view);
+        floor_shader->set_mat4fv("model", model);
 
         room.draw();
+
+        /*
+         * Draw model.
+         */
+        model_shader->use();
+
+        // Set model matrix.
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f));
+        model = glm::scale(model, glm::vec3(model_settings.scale_factor));
+
+        // Position properties.
+        model_shader->set_vec3("view_pos", camera_pos);
+
+        // Material properties.
+        model_shader->set_float("material.shininess", 32.0f);
+
+        // Render backpack.
+        model_shader->set_mat4fv("projection", projection);
+        model_shader->set_mat4fv("view", view);
+        model_shader->set_mat4fv("model", model);
+
+        model_object.draw();
 
         /*
          * Swap buffers and poll I/O events.

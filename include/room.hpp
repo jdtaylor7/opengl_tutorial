@@ -15,7 +15,7 @@ const std::vector<float> floor_vertices = scale_square_texture_coords(4.0f);
 class Room
 {
 public:
-    Room(Shader& floor_shader_,
+    Room(Shader* floor_shader_,
         std::filesystem::path floor_diffuse_texture_path_,
         std::filesystem::path floor_specular_texture_path_,
         std::filesystem::path floor_normal_texture_path_,
@@ -32,7 +32,7 @@ public:
     void deinit();
     void draw();
 private:
-    Shader floor_shader;
+    Shader* floor_shader;
 
     std::filesystem::path floor_diffuse_texture_path;
     std::filesystem::path floor_specular_texture_path;
@@ -93,16 +93,19 @@ void Room::draw()
     /*
      * Draw floor.
      */
+    // Set shader attributes.
     if (sl)
     {
+        floor_shader->use();
+        
         // Directional light properties.
         if (sl->dir)
         {
-            floor_shader.set_vec3("dir_light.direction", sl->dir->direction);
+            floor_shader->set_vec3("dir_light.direction", sl->dir->direction);
 
-            floor_shader.set_vec3("dir_light.ambient", sl->dir->ambient);
-            floor_shader.set_vec3("dir_light.diffuse", sl->dir->diffuse);
-            floor_shader.set_vec3("dir_light.specular", sl->dir->specular);
+            floor_shader->set_vec3("dir_light.ambient", sl->dir->ambient);
+            floor_shader->set_vec3("dir_light.diffuse", sl->dir->diffuse);
+            floor_shader->set_vec3("dir_light.specular", sl->dir->specular);
         }
         else
         {
@@ -116,13 +119,13 @@ void Room::draw()
 
             if (sl->points[i])
             {
-                floor_shader.set_vec3(attr_prefix + "position", sl->points[i]->position);
-                floor_shader.set_vec3(attr_prefix + "ambient", sl->points[i]->ambient);
-                floor_shader.set_vec3(attr_prefix + "diffuse", sl->points[i]->color * sl->points[i]->diffuse);
-                floor_shader.set_vec3(attr_prefix + "specular", sl->points[i]->color * sl->points[i]->specular);
-                floor_shader.set_float(attr_prefix + "constant", sl->points[i]->constant);
-                floor_shader.set_float(attr_prefix + "linear", sl->points[i]->linear);
-                floor_shader.set_float(attr_prefix + "quadratic", sl->points[i]->quadratic);
+                floor_shader->set_vec3(attr_prefix + "position", sl->points[i]->position);
+                floor_shader->set_vec3(attr_prefix + "ambient", sl->points[i]->ambient);
+                floor_shader->set_vec3(attr_prefix + "diffuse", sl->points[i]->color * sl->points[i]->diffuse);
+                floor_shader->set_vec3(attr_prefix + "specular", sl->points[i]->color * sl->points[i]->specular);
+                floor_shader->set_float(attr_prefix + "constant", sl->points[i]->constant);
+                floor_shader->set_float(attr_prefix + "linear", sl->points[i]->linear);
+                floor_shader->set_float(attr_prefix + "quadratic", sl->points[i]->quadratic);
             }
             else
             {
@@ -133,19 +136,19 @@ void Room::draw()
         // Spotlight properties.
         if (sl->spot)
         {
-            floor_shader.set_vec3("spotlight.position", sl->spot->position);
-            floor_shader.set_vec3("spotlight.direction", sl->spot->direction);
+            floor_shader->set_vec3("spotlight.position", sl->spot->position);
+            floor_shader->set_vec3("spotlight.direction", sl->spot->direction);
 
-            floor_shader.set_float("spotlight.inner_cutoff", glm::cos(glm::radians(sl->spot->inner_cutoff)));
-            floor_shader.set_float("spotlight.outer_cutoff", glm::cos(glm::radians(sl->spot->outer_cutoff)));
+            floor_shader->set_float("spotlight.inner_cutoff", glm::cos(glm::radians(sl->spot->inner_cutoff)));
+            floor_shader->set_float("spotlight.outer_cutoff", glm::cos(glm::radians(sl->spot->outer_cutoff)));
 
-            floor_shader.set_vec3("spotlight.ambient", sl->spot->ambient);
-            floor_shader.set_vec3("spotlight.diffuse", sl->spot->diffuse);
-            floor_shader.set_vec3("spotlight.specular", sl->spot->specular);
+            floor_shader->set_vec3("spotlight.ambient", sl->spot->ambient);
+            floor_shader->set_vec3("spotlight.diffuse", sl->spot->diffuse);
+            floor_shader->set_vec3("spotlight.specular", sl->spot->specular);
 
-            floor_shader.set_float("spotlight.constant", sl->spot->constant);
-            floor_shader.set_float("spotlight.linear", sl->spot->linear);
-            floor_shader.set_float("spotlight.quadratic", sl->spot->quadratic);
+            floor_shader->set_float("spotlight.constant", sl->spot->constant);
+            floor_shader->set_float("spotlight.linear", sl->spot->linear);
+            floor_shader->set_float("spotlight.quadratic", sl->spot->quadratic);
         }
         else
         {
@@ -153,7 +156,7 @@ void Room::draw()
         }
 
         // // Material properties.
-        // floor_shader.set_float("material.shininess", 32.0f);
+        // floor_shader->set_float("material.shininess", 32.0f);
     }
     else
     {
@@ -163,10 +166,10 @@ void Room::draw()
     // Set textures.
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, floor_diffuse_texture);
-    floor_shader.set_float("material.texture_diffuse1", floor_diffuse_texture);
+    floor_shader->set_float("material.texture_diffuse1", floor_diffuse_texture);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, floor_specular_texture);
-    floor_shader.set_float("material.texture_specular1", floor_specular_texture);
+    floor_shader->set_float("material.texture_specular1", floor_specular_texture);
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);

@@ -13,7 +13,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "lights.hpp"
 #include "mesh.hpp"
+#include "shader.hpp"
 #include "utility.hpp"
 
 struct ModelSettings
@@ -33,17 +35,24 @@ struct ModelSettings
 class Model
 {
 public:
-    explicit Model(std::filesystem::path path_, bool flip_model_textures_) :
-        path(path_),
-        flip_model_textures(flip_model_textures_)
+    Model(std::filesystem::path path_,
+        bool flip_model_textures_,
+        Shader* shader_,
+        SceneLighting* scene_lighting_) :
+            path(path_),
+            flip_model_textures(flip_model_textures_),
+            shader(shader_),
+            sl(scene_lighting_)
     {
     }
 
     bool init();
     void deinit();
-    void draw(Shader&);
+    void draw();
 private:
-    // Model data.
+    Shader* shader;
+    SceneLighting* sl;
+
     std::vector<Mesh> meshes;
     std::filesystem::path path;
     std::filesystem::path directory;
@@ -69,10 +78,10 @@ void Model::deinit()
         mesh.deinit();
 }
 
-void Model::draw(Shader& shader)
+void Model::draw()
 {
     for (std::size_t i = 0; i < meshes.size(); i++)
-        meshes[i].draw(shader);
+        meshes[i].draw();
 }
 
 bool Model::load_model()
@@ -180,7 +189,7 @@ Mesh Model::process_mesh(aiMesh* mesh, const aiScene* scene)
             std::end(specular_maps));
     }
 
-    return Mesh(vertices, indices, textures);
+    return Mesh(vertices, indices, textures, shader, sl);
 }
 
 std::vector<Texture> Model::load_material_textures(aiMaterial* material,
