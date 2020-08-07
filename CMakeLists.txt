@@ -98,3 +98,6 @@ add_executable(multiple_lights src/2_lighting/6_multiple_lights/main.cpp)
 
 # Model loading.
 add_executable(model src/3_model_loading/main.cpp)
+
+# Advanced lighting.
+add_executable(shadow_mapping src/3_shadows/1_shadow_mapping/main.cpp)
