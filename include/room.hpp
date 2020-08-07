@@ -11,8 +11,13 @@
 #include "shapes.hpp"
 #include "utility.hpp"
 
-const std::vector<float> floor_vertices = scale_square_texture_coords(4.0f);
-// const std::vector<float> wall_vertices = generate_rectangle_vertices(2.0f);
+const std::vector<float> floor_vertices = {
+    // positions         // normals          // texture coords
+     0.5f,  0.5f, 0.0f,  0.0f, 0.0f, -1.0f,  4.0f, 4.0f,  // top right
+     0.5f, -0.5f, 0.0f,  0.0f, 0.0f, -1.0f,  4.0f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, -1.0f,  0.0f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, -1.0f,  0.0f, 4.0f,  // top left
+};
 const std::vector<float> wall_vertices = {
     // positions         // normals          // texture coords
      0.5f,  0.25f, 0.0f,  0.0f, 0.0f, -1.0f,  4.0f, 2.0f,  // top right
@@ -20,6 +25,11 @@ const std::vector<float> wall_vertices = {
     -0.5f, -0.25f, 0.0f,  0.0f, 0.0f, -1.0f,  0.0f, 0.0f,  // bottom left
     -0.5f,  0.25f, 0.0f,  0.0f, 0.0f, -1.0f,  0.0f, 2.0f,  // top left
 };
+
+// Ceiling.
+const glm::vec3 ceiling_translation_vec = glm::vec3(0.0f, 10.0f, 0.0f);
+const float ceiling_rotation_angle = -90.0f;
+const glm::vec3 ceiling_rotation_axis = glm::vec3(1.0f, 0.0f, 0.0f);
 
 // Floor.
 const glm::vec3 floor_translation_vec = glm::vec3(0.0f, -2.0f, 0.0f);
@@ -35,17 +45,14 @@ const std::vector<glm::vec3> wall_translation_vecs = {
 };
 
 const std::vector<float> wall_rotation_angles = {
-    0.0f,
+    180.0f,
     0.0f,
     90.0f,
     90.0f,
 };
 
-// Ceiling.
-const glm::vec3 ceiling_translation_vec = glm::vec3(0.0f, 10.0f, 0.0f);
-
 const std::vector<glm::vec3> wall_rotation_axes = {
-    glm::vec3(1.0f, 0.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f),
     glm::vec3(1.0f, 0.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f),
@@ -57,19 +64,19 @@ public:
     Room(Shader* shader_,
         std::filesystem::path floor_diffuse_texture_path_,
         std::filesystem::path floor_specular_texture_path_,
-        std::filesystem::path wall_diffuse_texture_path_,
-        std::filesystem::path wall_specular_texture_path_,
         std::filesystem::path ceiling_diffuse_texture_path_,
         std::filesystem::path ceiling_specular_texture_path_,
+        std::filesystem::path wall_diffuse_texture_path_,
+        std::filesystem::path wall_specular_texture_path_,
         SceneLighting* scene_lighting_,
         float scale_factor_) :
             shader(shader_),
             floor_diffuse_texture_path(floor_diffuse_texture_path_),
             floor_specular_texture_path(floor_specular_texture_path_),
-            wall_diffuse_texture_path(wall_diffuse_texture_path_),
-            wall_specular_texture_path(wall_specular_texture_path_),
             ceiling_diffuse_texture_path(ceiling_diffuse_texture_path_),
             ceiling_specular_texture_path(ceiling_specular_texture_path_),
+            wall_diffuse_texture_path(wall_diffuse_texture_path_),
+            wall_specular_texture_path(wall_specular_texture_path_),
             sl(scene_lighting_),
             scale_factor(scale_factor_)
     {
@@ -83,17 +90,17 @@ private:
 
     std::filesystem::path floor_diffuse_texture_path;
     std::filesystem::path floor_specular_texture_path;
-    std::filesystem::path wall_diffuse_texture_path;
-    std::filesystem::path wall_specular_texture_path;
     std::filesystem::path ceiling_diffuse_texture_path;
     std::filesystem::path ceiling_specular_texture_path;
+    std::filesystem::path wall_diffuse_texture_path;
+    std::filesystem::path wall_specular_texture_path;
 
     unsigned int floor_diffuse_texture;
     unsigned int floor_specular_texture;
-    unsigned int wall_diffuse_texture;
-    unsigned int wall_specular_texture;
     unsigned int ceiling_diffuse_texture;
     unsigned int ceiling_specular_texture;
+    unsigned int wall_diffuse_texture;
+    unsigned int wall_specular_texture;
 
     unsigned int vao;
     unsigned int vbo;
@@ -133,10 +140,10 @@ void Room::init()
     // Load textures.
     floor_diffuse_texture = load_texture_from_file(floor_diffuse_texture_path);
     floor_specular_texture = load_texture_from_file(floor_specular_texture_path);
-    wall_diffuse_texture = load_texture_from_file(wall_diffuse_texture_path);
-    wall_specular_texture = load_texture_from_file(wall_specular_texture_path);
     ceiling_diffuse_texture = load_texture_from_file(ceiling_diffuse_texture_path);
     ceiling_specular_texture = load_texture_from_file(ceiling_specular_texture_path);
+    wall_diffuse_texture = load_texture_from_file(wall_diffuse_texture_path);
+    wall_specular_texture = load_texture_from_file(wall_specular_texture_path);
 }
 
 void Room::deinit()
@@ -257,6 +264,37 @@ void Room::draw()
     glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
 
     /*
+     * Draw ceiling.
+     */
+    // Bind vertex buffers.
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * floor_vertices.size(), floor_vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * square_indices.size(), square_indices.data(), GL_STATIC_DRAW);
+
+    // Set model matrix.
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, ceiling_translation_vec);
+    model = glm::rotate(model, glm::radians(ceiling_rotation_angle), ceiling_rotation_axis);
+    model = glm::scale(model, glm::vec3(scale_factor));
+    shader->set_mat4fv("model", model);
+
+    // Set textures.
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ceiling_diffuse_texture);
+    shader->set_float("material.texture_diffuse1", ceiling_diffuse_texture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, ceiling_specular_texture);
+    shader->set_float("material.texture_specular1", ceiling_specular_texture);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
+
+    /*
      * Draw walls.
      */
     // Bind vertex buffers.
@@ -276,6 +314,8 @@ void Room::draw()
         model = glm::mat4(1.0f);
         model = glm::translate(model, wall_translation_vecs[i]);
         model = glm::rotate(model, glm::radians(wall_rotation_angles[i]), wall_rotation_axes[i]);
+        if (i == 2)
+            model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(scale_factor));
         shader->set_mat4fv("model", model);
 
@@ -289,37 +329,6 @@ void Room::draw()
 
         glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
     }
-
-    /*
-     * Draw ceiling.
-     */
-    // Bind vertex buffers.
-    glBindVertexArray(vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * floor_vertices.size(), floor_vertices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * square_indices.size(), square_indices.data(), GL_STATIC_DRAW);
-
-    // Set model matrix.
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, ceiling_translation_vec);
-    model = glm::rotate(model, glm::radians(floor_rotation_angle), floor_rotation_axis);
-    model = glm::scale(model, glm::vec3(scale_factor));
-    shader->set_mat4fv("model", model);
-
-    // Set textures.
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ceiling_diffuse_texture);
-    shader->set_float("material.texture_diffuse1", ceiling_diffuse_texture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, ceiling_specular_texture);
-    shader->set_float("material.texture_specular1", ceiling_specular_texture);
-
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
 }

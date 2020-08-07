@@ -47,15 +47,15 @@ const fs::path model_directory = "assets/models/" + model_settings.name;
 const fs::path model_obj_path = model_directory / (model_settings.name + ".obj");
 
 const fs::path floor_texture_path = texture_path / "tile_floor";
+const fs::path ceiling_texture_path = texture_path / "tile_floor";
 const fs::path wall_texture_path = texture_path / "scifi_wall";
-const fs::path ceiling_texture_path = texture_path / "leather_ceiling";
 
 const fs::path floor_diffuse_path = floor_texture_path / "diffuse.png";
 const fs::path floor_specular_path = floor_texture_path / "specular.png";
-const fs::path wall_diffuse_path = wall_texture_path / "diffuse.png";
-const fs::path wall_specular_path = wall_texture_path / "specular.png";
 const fs::path ceiling_diffuse_path = ceiling_texture_path / "diffuse.png";
 const fs::path ceiling_specular_path = ceiling_texture_path / "specular.png";
+const fs::path wall_diffuse_path = wall_texture_path / "diffuse.png";
+const fs::path wall_specular_path = wall_texture_path / "specular.png";
 
 glm::vec3 camera_pos = glm::vec3(4.91f, 1.62f, 5.61f);
 glm::vec3 camera_front = glm::vec3(-0.67f, -0.30f, -0.68f);
@@ -84,9 +84,12 @@ const glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
  * Light settings.
  */
 // Shared.
+// const float light_attenuation_constant = 1.0f;
+// const float light_attenuation_linear = 0.07f;
+// const float light_attenuation_quadratic = 0.017f;
 const float light_attenuation_constant = 1.0f;
-const float light_attenuation_linear = 0.07f;
-const float light_attenuation_quadratic = 0.017f;
+const float light_attenuation_linear = 0.007f;
+const float light_attenuation_quadratic = 0.0002f;
 
 const glm::vec3 diffuse_light_intensity = glm::vec3(0.5f);
 const glm::vec3 specular_light_intensity = glm::vec3(1.0f);
@@ -103,12 +106,24 @@ const std::vector<glm::vec3> point_light_colors{
     glm::vec3(0.0f, 0.0f, 1.0f),
     glm::vec3(1.0f, 1.0f, 1.0f),
 };
+// const std::vector<glm::vec3> point_light_colors{
+    // glm::vec3(1.0f, 0.2f, 0.2f),
+    // glm::vec3(1.0f, 0.2f, 0.2f),
+    // glm::vec3(1.0f, 0.2f, 0.2f),
+    // glm::vec3(1.0f, 0.2f, 0.2f),
+// };
 
+// const std::vector<glm::vec3> point_light_positions = {
+//     glm::vec3( 0.7f,  0.2f,  2.0f),
+//     glm::vec3( 2.3f, -1.0f, -1.5f),
+//     glm::vec3(-4.0f,  2.0f, 2.0f),
+//     glm::vec3( 0.0f,  0.0f, -3.0f),
+// };
 const std::vector<glm::vec3> point_light_positions = {
-    glm::vec3( 0.7f,  0.2f,  2.0f),
-    glm::vec3( 2.3f, -1.0f, -1.5f),
-    glm::vec3(-4.0f,  2.0f, 2.0f),
-    glm::vec3( 0.0f,  0.0f, -3.0f),
+    glm::vec3( 8.0f, 8.0f,  8.0f),
+    glm::vec3( 8.0f, 8.0f, -8.0f),
+    glm::vec3(-8.0f, 8.0f,  8.0f),
+    glm::vec3(-8.0f, 8.0f, -8.0f),
 };
 
 const float point_light_scale_factor = 0.2f;
@@ -305,10 +320,10 @@ int main()
     Room room(floor_shader.get(),
         floor_diffuse_path,
         floor_specular_path,
-        wall_diffuse_path,
-        wall_specular_path,
         ceiling_diffuse_path,
         ceiling_specular_path,
+        wall_diffuse_path,
+        wall_specular_path,
         scene_lighting.get(),
         room_scale_factor);
     room.init();
