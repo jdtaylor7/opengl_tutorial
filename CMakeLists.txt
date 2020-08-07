@@ -100,4 +100,4 @@ add_executable(multiple_lights src/2_lighting/6_multiple_lights/main.cpp)
 add_executable(model src/3_model_loading/main.cpp)
 
 # Advanced lighting.
-add_executable(shadow_mapping src/3_shadows/1_shadow_mapping/main.cpp)
+add_executable(shadow_mapping src/5_advanced_lighting/3_shadows/1_shadow_mapping/main.cpp)

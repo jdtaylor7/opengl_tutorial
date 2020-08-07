@@ -33,7 +33,7 @@ bool show_mesh = false;
 float room_scale_factor = 24.0f;
 
 namespace fs = std::filesystem;
-const fs::path shader_path = "src/3_model_loading";
+const fs::path shader_path = "src/5_advanced_lighting/3_shadows/1_shadow_mapping";
 const fs::path texture_path = "assets/textures";
 
 const fs::path plight_vshader_path = shader_path / "point_light.vs";
@@ -94,29 +94,31 @@ const glm::vec3 directional_light_ambient_intensity = glm::vec3(0.2f);
 const glm::vec3 directional_light_direction = glm::vec3(0.0f, -1.0f, 0.0f);
 
 // Point lights.
-const glm::vec3 point_light_ambient_intensity = glm::vec3(0.05f);
+const glm::vec3 point_light_ambient_intensity = glm::vec3(0.8f);
 const std::vector<glm::vec3> point_light_colors{
-    glm::vec3(1.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f),
-    glm::vec3(0.0f, 0.0f, 1.0f),
-    glm::vec3(1.0f, 1.0f, 0.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
+    // glm::vec3(1.0f, 0.0f, 0.0f),
+    // glm::vec3(0.0f, 1.0f, 0.0f),
+    // glm::vec3(0.0f, 0.0f, 1.0f),
+    // glm::vec3(1.0f, 1.0f, 0.0f),
+    // glm::vec3(1.0f, 1.0f, 1.0f),
+    // glm::vec3(1.0f, 1.0f, 1.0f),
+    // glm::vec3(1.0f, 1.0f, 1.0f),
+    // glm::vec3(1.0f, 1.0f, 1.0f),
+    // glm::vec3(1.0f, 1.0f, 1.0f),
     glm::vec3(1.0f, 1.0f, 1.0f),
 };
 
 const std::vector<glm::vec3> point_light_positions = {
-    glm::vec3( 9.0f, 9.0f,  9.0f),
-    glm::vec3( 9.0f, 9.0f, -9.0f),
-    glm::vec3(-9.0f, 9.0f,  9.0f),
-    glm::vec3(-9.0f, 9.0f, -9.0f),
-    glm::vec3( 9.0f, 9.0f,  0.0f),
-    glm::vec3( 0.0f, 9.0f,  9.0f),
-    glm::vec3(-9.0f, 9.0f,  0.0f),
-    glm::vec3( 0.0f, 9.0f, -9.0f),
-    glm::vec3( 0.0f, 9.0f,  0.0f),
+    // glm::vec3( 9.0f, 9.0f,  9.0f),
+    // glm::vec3( 9.0f, 9.0f, -9.0f),
+    // glm::vec3(-9.0f, 9.0f,  9.0f),
+    // glm::vec3(-9.0f, 9.0f, -9.0f),
+    // glm::vec3( 9.0f, 9.0f,  0.0f),
+    // glm::vec3( 0.0f, 9.0f,  9.0f),
+    // glm::vec3(-9.0f, 9.0f,  0.0f),
+    // glm::vec3( 0.0f, 9.0f, -9.0f),
+    // glm::vec3( 0.0f, 9.0f,  0.0f),
+    glm::vec3( -4.0f, 2.0f, -2.0f),
 };
 
 const float point_light_scale_factor = 0.2f;
