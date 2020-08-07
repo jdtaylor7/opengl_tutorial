@@ -37,20 +37,17 @@ class Model
 public:
     Model(std::filesystem::path path_,
         bool flip_model_textures_,
-        Shader* shader_,
         SceneLighting* scene_lighting_) :
             path(path_),
             flip_model_textures(flip_model_textures_),
-            shader(shader_),
             sl(scene_lighting_)
     {
     }
 
     bool init();
     void deinit();
-    void draw();
+    void draw(Shader* shader);
 private:
-    Shader* shader;
     SceneLighting* sl;
 
     std::vector<Mesh> meshes;
@@ -78,10 +75,10 @@ void Model::deinit()
         mesh.deinit();
 }
 
-void Model::draw()
+void Model::draw(Shader* shader)
 {
     for (std::size_t i = 0; i < meshes.size(); i++)
-        meshes[i].draw();
+        meshes[i].draw(shader);
 }
 
 bool Model::load_model()
@@ -189,7 +186,7 @@ Mesh Model::process_mesh(aiMesh* mesh, const aiScene* scene)
             std::end(specular_maps));
     }
 
-    return Mesh(vertices, indices, textures, shader, sl);
+    return Mesh(vertices, indices, textures, sl);
 }
 
 std::vector<Texture> Model::load_material_textures(aiMaterial* material,

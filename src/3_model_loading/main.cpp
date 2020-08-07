@@ -309,8 +309,7 @@ int main()
     /*
      * Initialize room.
      */
-    Room room(main_shader.get(),
-        floor_diffuse_path,
+    Room room(floor_diffuse_path,
         floor_specular_path,
         ceiling_diffuse_path,
         ceiling_specular_path,
@@ -325,7 +324,6 @@ int main()
      */
     Model model_object(model_obj_path,
         model_settings.flip_textures,
-        main_shader.get(),
         scene_lighting.get());
     model_object.init();
 
@@ -397,7 +395,7 @@ int main()
         main_shader->set_mat4fv("projection", projection);
         main_shader->set_mat4fv("view", view);
 
-        room.draw();
+        room.draw(main_shader.get());
 
         /*
          * Draw model.
@@ -420,7 +418,7 @@ int main()
         main_shader->set_mat4fv("view", view);
         main_shader->set_mat4fv("model", model);
 
-        model_object.draw();
+        model_object.draw(main_shader.get());
 
         /*
          * Swap buffers and poll I/O events.

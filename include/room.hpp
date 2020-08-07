@@ -61,8 +61,7 @@ const std::vector<glm::vec3> wall_rotation_axes = {
 class Room
 {
 public:
-    Room(Shader* shader_,
-        std::filesystem::path floor_diffuse_texture_path_,
+    Room(std::filesystem::path floor_diffuse_texture_path_,
         std::filesystem::path floor_specular_texture_path_,
         std::filesystem::path ceiling_diffuse_texture_path_,
         std::filesystem::path ceiling_specular_texture_path_,
@@ -70,7 +69,6 @@ public:
         std::filesystem::path wall_specular_texture_path_,
         SceneLighting* scene_lighting_,
         float scale_factor_) :
-            shader(shader_),
             floor_diffuse_texture_path(floor_diffuse_texture_path_),
             floor_specular_texture_path(floor_specular_texture_path_),
             ceiling_diffuse_texture_path(ceiling_diffuse_texture_path_),
@@ -84,10 +82,8 @@ public:
 
     void init();
     void deinit();
-    void draw();
+    void draw(Shader* shader);
 private:
-    Shader* shader;
-
     std::filesystem::path floor_diffuse_texture_path;
     std::filesystem::path floor_specular_texture_path;
     std::filesystem::path ceiling_diffuse_texture_path;
@@ -153,7 +149,7 @@ void Room::deinit()
     glDeleteBuffers(1, &ebo);
 }
 
-void Room::draw()
+void Room::draw(Shader* shader)
 {
     /*
      * Set shader attributes.

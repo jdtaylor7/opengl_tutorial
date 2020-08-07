@@ -32,21 +32,18 @@ public:
     Mesh(std::vector<Vertex> vertices_,
         std::vector<unsigned int> indices_,
         std::vector<Texture> textures_,
-        Shader* shader_,
         SceneLighting* scene_lighting_) :
             vertices(vertices_),
             indices(indices_),
             textures(textures_),
-            shader(shader_),
             sl(scene_lighting_)
     {
     }
 
     void init();
     void deinit();
-    void draw();
+    void draw(Shader* shader);
 private:
-    Shader* shader;
     SceneLighting* sl;
 
     std::vector<Vertex> vertices;
@@ -92,14 +89,14 @@ void Mesh::deinit()
     glDeleteBuffers(1, &ebo);
 }
 
-void Mesh::draw()
+void Mesh::draw(Shader* shader)
 {
     // Set shader attributes.
 
     if (sl)
     {
         shader->use();
-        
+
         // Directional light properties.
         if (sl->dir)
         {
