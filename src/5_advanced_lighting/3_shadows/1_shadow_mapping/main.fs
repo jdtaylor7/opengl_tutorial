@@ -52,14 +52,34 @@ struct Material
 in vec3 frag_pos;
 in vec3 normal_vec;
 in vec2 tex_coords;
+in vec4 frag_pos_light_space;
 
 uniform vec3 view_pos;
 uniform DirectionalLight dir_light;
 uniform PointLight point_lights[NUM_POINT_LIGHTS];
 uniform Spotlight spotlight;
 uniform Material material;
+uniform sampler2D shadow_map;
 
 out vec4 frag_color;
+
+float calc_shadow(vec4 frag_pos)
+{
+    // Normalize perspective.
+    vec3 proj_coords = frag_pos.xyz / frag_pos.w;
+
+    // Transform from [-1, 1] to [0, 1].
+    proj_coords = (proj_coords * 0.5f) + 0.5f;
+
+    // Compute closest and current depths.
+    float closest_depth = texture(shadow_map, proj_coords.xy).r;
+    float current_depth = proj_coords.z;
+
+    // Check if current frag pos in shadow.
+    float shadow = current_depth > closest_depth ? 1.0f : 0.0f;
+
+    return shadow;
+}
 
 vec3 calc_dir_light(DirectionalLight light, vec3 normal, vec3 view_dir)
 {
@@ -103,7 +123,10 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
     diffuse *= attenuation;
     specular *= attenuation;
 
-    return (ambient + diffuse + specular);
+    // Shadow.
+    float shadow = calc_shadow(frag_pos_light_space);
+
+    return (ambient + (1.0f - shadow) * (diffuse + specular));
 }
 
 vec3 calc_spotlight(Spotlight light, vec3 normal, vec3 frag_pos, vec3 view_dir)

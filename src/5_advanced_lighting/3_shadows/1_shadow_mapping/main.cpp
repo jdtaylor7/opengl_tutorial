@@ -40,6 +40,8 @@ const fs::path plight_vshader_path = shader_path / "point_light.vs";
 const fs::path plight_fshader_path = shader_path / "point_light.fs";
 const fs::path main_vshader_path = shader_path / "main.vs";
 const fs::path main_fshader_path = shader_path / "main.fs";
+const fs::path shadow_vshader_path = shader_path / "shadow_depth.vs";
+const fs::path shadow_fshader_path = shader_path / "shadow_depth.fs";
 
 const fs::path model_directory = "assets/models/" + model_settings.name;
 const fs::path model_obj_path = model_directory / (model_settings.name + ".obj");
@@ -131,6 +133,23 @@ glm::vec3 spotlight_direction = camera_front;
 const float spotlight_inner_cutoff = 12.5f;  // Degrees
 const float spotlight_outer_cutoff = 17.5f;  // Degrees
 
+/*
+ * Shadow settings.
+ */
+// Depth map resolution.
+const std::size_t shadow_width = 1024;
+const std::size_t shadow_height = 1024;
+
+// Light frustrum settings.
+float light_frustrum_near_plane = 1.0f;
+float light_frustrum_far_plane = 7.5f;
+glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f,
+    light_frustrum_near_plane, light_frustrum_far_plane);
+glm::mat4 light_view = glm::lookAt(
+    glm::vec3(-2.0f, 4.0f, -1.0f),
+    glm::vec3( 0.0f, 0.0f,  0.0f),
+    glm::vec3( 0.0f, 1.0f,  0.0f));
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -212,6 +231,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
         fov = 45.0f;
 }
 
+void render_scene(Shader* shader)
+{
+
+}
+
 int main()
 {
     /*
@@ -255,10 +279,39 @@ int main()
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     /*
+     * Set up shadow mapping.
+     */
+    // Create framebuffer for depth map.
+    unsigned int depth_map_fbo;
+    glGenFramebuffers(1, &depth_map_fbo);
+
+    // Create texture for depth map.
+    unsigned int depth_map;
+    glGenTextures(1, &depth_map);
+    glBindTexture(GL_TEXTURE_2D, depth_map);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadow_width,
+        shadow_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // Attach depth texture as framebuffer's depth buffer.
+    glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_map, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Set up light frustrum.
+    glm::mat4 light_space_matrix = light_projection * light_view;
+
+    /*
      * Create shader programs.
      */
     auto plight_shader = std::make_unique<Shader>(plight_vshader_path.string(), plight_fshader_path.string());
     auto main_shader = std::make_unique<Shader>(main_vshader_path.string(), main_fshader_path.string());
+    auto shadow_shader = std::make_unique<Shader>(shadow_vshader_path.string(), shadow_fshader_path.string());
 
     /*
      * Initialize lights.
@@ -349,8 +402,23 @@ int main()
         spotlight->update(camera_pos, camera_front);
 
         /*
+         * Generate depth buffer for shadows.
+         */
+        shadow_shader->use();
+        shadow_shader->set_mat4fv("light_space_matrix", light_space_matrix);
+
+        glViewport(0, 0, shadow_width, shadow_height);
+        glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        // RenderScene(shadow_shader.get());
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        /*
          * Render.
          */
+        // Reset viewport.
+        glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
         // Color buffer.
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -383,6 +451,12 @@ int main()
             plight_shader->set_vec3("color", point_light->color);
             point_light->draw();
         }
+
+        /*
+         * Assign necessary shadow values for upcoming drawings.
+         */
+        main_shader->use();
+        main_shader->set_float("shadow_map", depth_map);
 
         /*
          * Draw floor.
