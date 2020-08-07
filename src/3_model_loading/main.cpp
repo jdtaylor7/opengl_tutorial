@@ -38,10 +38,12 @@ const fs::path texture_path = "assets/textures";
 
 const fs::path plight_vshader_path = shader_path / "point_light.vs";
 const fs::path plight_fshader_path = shader_path / "point_light.fs";
-const fs::path model_vshader_path = shader_path / "model.vs";
-const fs::path model_fshader_path = shader_path / "model.fs";
-const fs::path floor_vshader_path = shader_path / "floor.vs";
-const fs::path floor_fshader_path = shader_path / "floor.fs";
+// const fs::path model_vshader_path = shader_path / "model.vs";
+// const fs::path model_fshader_path = shader_path / "model.fs";
+// const fs::path floor_vshader_path = shader_path / "floor.vs";
+// const fs::path floor_fshader_path = shader_path / "floor.fs";
+const fs::path main_vshader_path = shader_path / "main.vs";
+const fs::path main_fshader_path = shader_path / "main.fs";
 
 const fs::path model_directory = "assets/models/" + model_settings.name;
 const fs::path model_obj_path = model_directory / (model_settings.name + ".obj");
@@ -258,8 +260,9 @@ int main()
      * Create shader programs.
      */
     Shader plight_shader(plight_vshader_path.string(), plight_fshader_path.string());
-    auto model_shader = std::make_unique<Shader>(model_vshader_path.string(), model_fshader_path.string());
-    auto floor_shader = std::make_unique<Shader>(floor_vshader_path.string(), floor_fshader_path.string());
+    // auto model_shader = std::make_unique<Shader>(model_vshader_path.string(), model_fshader_path.string());
+    // auto floor_shader = std::make_unique<Shader>(floor_vshader_path.string(), floor_fshader_path.string());
+    auto main_shader = std::make_unique<Shader>(main_vshader_path.string(), main_fshader_path.string());
 
     /*
      * Initialize lights.
@@ -312,7 +315,7 @@ int main()
     /*
      * Initialize room.
      */
-    Room room(floor_shader.get(),
+    Room room(main_shader.get(),
         floor_diffuse_path,
         floor_specular_path,
         ceiling_diffuse_path,
@@ -328,7 +331,7 @@ int main()
      */
     Model model_object(model_obj_path,
         model_settings.flip_textures,
-        model_shader.get(),
+        main_shader.get(),
         scene_lighting.get());
     model_object.init();
 
@@ -388,24 +391,24 @@ int main()
         /*
          * Draw floor.
          */
-        floor_shader->use();
+        main_shader->use();
 
         // Position properties.
-        floor_shader->set_vec3("view_pos", camera_pos);
+        main_shader->set_vec3("view_pos", camera_pos);
 
         // Material properties.
-        floor_shader->set_float("material.shininess", 32.0f);
+        main_shader->set_float("material.shininess", 32.0f);
 
         // Set view and projection matrices,
-        floor_shader->set_mat4fv("projection", projection);
-        floor_shader->set_mat4fv("view", view);
+        main_shader->set_mat4fv("projection", projection);
+        main_shader->set_mat4fv("view", view);
 
         room.draw();
 
         /*
          * Draw model.
          */
-        model_shader->use();
+        main_shader->use();
 
         // Set model matrix.
         model = glm::mat4(1.0f);
@@ -413,15 +416,15 @@ int main()
         model = glm::scale(model, glm::vec3(model_settings.scale_factor));
 
         // Position properties.
-        model_shader->set_vec3("view_pos", camera_pos);
+        main_shader->set_vec3("view_pos", camera_pos);
 
         // Material properties.
-        model_shader->set_float("material.shininess", 32.0f);
+        main_shader->set_float("material.shininess", 32.0f);
 
         // Render backpack.
-        model_shader->set_mat4fv("projection", projection);
-        model_shader->set_mat4fv("view", view);
-        model_shader->set_mat4fv("model", model);
+        main_shader->set_mat4fv("projection", projection);
+        main_shader->set_mat4fv("view", view);
+        main_shader->set_mat4fv("model", model);
 
         model_object.draw();
 
