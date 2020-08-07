@@ -46,9 +46,16 @@ const fs::path floor_fshader_path = shader_path / "floor.fs";
 const fs::path model_directory = "assets/models/" + model_settings.name;
 const fs::path model_obj_path = model_directory / (model_settings.name + ".obj");
 
-const fs::path floor_diffuse_path = texture_path / "stone_floor/diffuse.png";
-const fs::path floor_specular_path = texture_path / "stone_floor/specular.png";
-const fs::path floor_normal_path = texture_path / "stone_floor/normal.png";
+const fs::path floor_texture_path = texture_path / "tile_floor";
+const fs::path wall_texture_path = texture_path / "scifi_wall";
+const fs::path ceiling_texture_path = texture_path / "leather_ceiling";
+
+const fs::path floor_diffuse_path = floor_texture_path / "diffuse.png";
+const fs::path floor_specular_path = floor_texture_path / "specular.png";
+const fs::path wall_diffuse_path = wall_texture_path / "diffuse.png";
+const fs::path wall_specular_path = wall_texture_path / "specular.png";
+const fs::path ceiling_diffuse_path = ceiling_texture_path / "diffuse.png";
+const fs::path ceiling_specular_path = ceiling_texture_path / "specular.png";
 
 glm::vec3 camera_pos = glm::vec3(4.91f, 1.62f, 5.61f);
 glm::vec3 camera_front = glm::vec3(-0.67f, -0.30f, -0.68f);
@@ -298,8 +305,12 @@ int main()
     Room room(floor_shader.get(),
         floor_diffuse_path,
         floor_specular_path,
-        floor_normal_path,
-        scene_lighting.get());
+        wall_diffuse_path,
+        wall_specular_path,
+        ceiling_diffuse_path,
+        ceiling_specular_path,
+        scene_lighting.get(),
+        room_scale_factor);
     room.init();
 
     /*
@@ -324,6 +335,9 @@ int main()
          * Input.
          */
         process_input(window);
+
+        // Update spotlight based on camera movement.
+        spotlight->update(camera_pos, camera_front);
 
         /*
          * Render.
@@ -366,23 +380,15 @@ int main()
          */
         floor_shader->use();
 
-        // Set model matrix.
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(room_scale_factor));
-
         // Position properties.
         floor_shader->set_vec3("view_pos", camera_pos);
 
         // Material properties.
         floor_shader->set_float("material.shininess", 32.0f);
 
-        spotlight->update(camera_pos, camera_front);
-
+        // Set view and projection matrices,
         floor_shader->set_mat4fv("projection", projection);
         floor_shader->set_mat4fv("view", view);
-        floor_shader->set_mat4fv("model", model);
 
         room.draw();
 

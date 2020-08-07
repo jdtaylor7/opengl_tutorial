@@ -31,6 +31,30 @@ std::vector<float> scale_square_texture_coords(float scale_factor)
     return scaled_vertices;
 }
 
+/*
+ * Creates a rectangle shorter along one axis, according to the x/y ratio. A
+ * value greater than 1.0 results in a rectangle shorter along the y-axis, while
+ * a value less than 1.0 results in a rectangle shorter along the x-axis.
+ */
+std::vector<float> generate_rectangle_vertices(float xy_ratio)
+{
+    std::size_t position_coords_offset = 0;
+    std::size_t bytes_per_vertex = 8;
+
+    // If greater than 1.0, shrink along the y-axis.
+    if (xy_ratio > 1.0f)
+        position_coords_offset = 1;
+
+    std::vector<float> rectangle_vertices = square_vertices;
+
+    for (std::size_t i = position_coords_offset; i < rectangle_vertices.size(); i += bytes_per_vertex)
+    {
+        rectangle_vertices[i] /= xy_ratio;
+    }
+
+    return rectangle_vertices;
+}
+
 const std::vector<float> cube_vertices = {
     // positions          // normals           // texture coords
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
