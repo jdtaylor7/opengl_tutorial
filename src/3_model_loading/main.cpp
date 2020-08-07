@@ -38,10 +38,6 @@ const fs::path texture_path = "assets/textures";
 
 const fs::path plight_vshader_path = shader_path / "point_light.vs";
 const fs::path plight_fshader_path = shader_path / "point_light.fs";
-// const fs::path model_vshader_path = shader_path / "model.vs";
-// const fs::path model_fshader_path = shader_path / "model.fs";
-// const fs::path floor_vshader_path = shader_path / "floor.vs";
-// const fs::path floor_fshader_path = shader_path / "floor.fs";
 const fs::path main_vshader_path = shader_path / "main.vs";
 const fs::path main_fshader_path = shader_path / "main.fs";
 
@@ -59,8 +55,11 @@ const fs::path ceiling_specular_path = ceiling_texture_path / "specular.png";
 const fs::path wall_diffuse_path = wall_texture_path / "diffuse.png";
 const fs::path wall_specular_path = wall_texture_path / "specular.png";
 
-glm::vec3 camera_pos = glm::vec3(4.91f, 1.62f, 5.61f);
-glm::vec3 camera_front = glm::vec3(-0.67f, -0.30f, -0.68f);
+float yaw = -109.8f;
+float pitch = -7.10f;
+
+glm::vec3 camera_pos = glm::vec3(2.85f, 1.68f, 7.70f);
+glm::vec3 camera_front = glm::vec3(-0.34f, -0.12f, -0.93f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;
@@ -72,9 +71,6 @@ float lastx = SCREEN_WIDTH / 2;
 float lasty = SCREEN_HEIGHT / 2;
 
 constexpr float mouse_sensitivity = 0.05f;
-
-float yaw = -135.0f;
-float pitch = -17.5f;
 
 bool first_mouse = true;
 
@@ -259,9 +255,7 @@ int main()
     /*
      * Create shader programs.
      */
-    Shader plight_shader(plight_vshader_path.string(), plight_fshader_path.string());
-    // auto model_shader = std::make_unique<Shader>(model_vshader_path.string(), model_fshader_path.string());
-    // auto floor_shader = std::make_unique<Shader>(floor_vshader_path.string(), floor_fshader_path.string());
+    auto plight_shader = std::make_unique<Shader>(plight_vshader_path.string(), plight_fshader_path.string());
     auto main_shader = std::make_unique<Shader>(main_vshader_path.string(), main_fshader_path.string());
 
     /*
@@ -371,11 +365,11 @@ int main()
         /*
          * Draw point lights.
          */
-        plight_shader.use();
+        plight_shader->use();
 
         // Set MVP matrices.
-        plight_shader.set_mat4fv("projection", projection);
-        plight_shader.set_mat4fv("view", view);
+        plight_shader->set_mat4fv("projection", projection);
+        plight_shader->set_mat4fv("view", view);
 
         // Render point light.
         for (auto& point_light : point_lights)
@@ -383,8 +377,8 @@ int main()
             model = glm::mat4(1.0f);
             model = glm::translate(model, point_light->position);
             model = glm::scale(model, glm::vec3(point_light->scale_factor));
-            plight_shader.set_mat4fv("model", model);
-            plight_shader.set_vec3("color", point_light->color);
+            plight_shader->set_mat4fv("model", model);
+            plight_shader->set_vec3("color", point_light->color);
             point_light->draw();
         }
 
