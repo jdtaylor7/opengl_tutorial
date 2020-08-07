@@ -26,15 +26,15 @@ const std::vector<float> wall_vertices = {
     -0.5f,  0.25f, 0.0f,  0.0f, 0.0f, -1.0f,  0.0f, 2.0f,  // top left
 };
 
-// Ceiling.
-const glm::vec3 ceiling_translation_vec = glm::vec3(0.0f, 10.0f, 0.0f);
-const float ceiling_rotation_angle = -90.0f;
-const glm::vec3 ceiling_rotation_axis = glm::vec3(1.0f, 0.0f, 0.0f);
-
 // Floor.
 const glm::vec3 floor_translation_vec = glm::vec3(0.0f, -2.0f, 0.0f);
 const float floor_rotation_angle = 90.0f;
 const glm::vec3 floor_rotation_axis = glm::vec3(1.0f, 0.0f, 0.0f);
+
+// Ceiling.
+const glm::vec3 ceiling_translation_vec = glm::vec3(0.0f, 10.0f, 0.0f);
+const float ceiling_rotation_angle = -90.0f;
+const glm::vec3 ceiling_rotation_axis = glm::vec3(1.0f, 0.0f, 0.0f);
 
 // Walls.
 const std::vector<glm::vec3> wall_translation_vecs = {
@@ -190,6 +190,7 @@ void Room::draw()
                 shader->set_float(attr_prefix + "constant", sl->points[i]->constant);
                 shader->set_float(attr_prefix + "linear", sl->points[i]->linear);
                 shader->set_float(attr_prefix + "quadratic", sl->points[i]->quadratic);
+
             }
             else
             {
@@ -314,8 +315,11 @@ void Room::draw()
         model = glm::mat4(1.0f);
         model = glm::translate(model, wall_translation_vecs[i]);
         model = glm::rotate(model, glm::radians(wall_rotation_angles[i]), wall_rotation_axes[i]);
+
+        // Add rotation for one wall.
         if (i == 2)
             model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
         model = glm::scale(model, glm::vec3(scale_factor));
         shader->set_mat4fv("model", model);
 

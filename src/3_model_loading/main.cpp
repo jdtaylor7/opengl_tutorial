@@ -84,12 +84,9 @@ const glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
  * Light settings.
  */
 // Shared.
-// const float light_attenuation_constant = 1.0f;
-// const float light_attenuation_linear = 0.07f;
-// const float light_attenuation_quadratic = 0.017f;
 const float light_attenuation_constant = 1.0f;
-const float light_attenuation_linear = 0.007f;
-const float light_attenuation_quadratic = 0.0002f;
+const float light_attenuation_linear = 0.07f;
+const float light_attenuation_quadratic = 0.017f;
 
 const glm::vec3 diffuse_light_intensity = glm::vec3(0.5f);
 const glm::vec3 specular_light_intensity = glm::vec3(1.0f);
@@ -104,26 +101,24 @@ const std::vector<glm::vec3> point_light_colors{
     glm::vec3(1.0f, 0.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f),
     glm::vec3(0.0f, 0.0f, 1.0f),
+    glm::vec3(1.0f, 1.0f, 0.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
     glm::vec3(1.0f, 1.0f, 1.0f),
 };
-// const std::vector<glm::vec3> point_light_colors{
-    // glm::vec3(1.0f, 0.2f, 0.2f),
-    // glm::vec3(1.0f, 0.2f, 0.2f),
-    // glm::vec3(1.0f, 0.2f, 0.2f),
-    // glm::vec3(1.0f, 0.2f, 0.2f),
-// };
 
-// const std::vector<glm::vec3> point_light_positions = {
-//     glm::vec3( 0.7f,  0.2f,  2.0f),
-//     glm::vec3( 2.3f, -1.0f, -1.5f),
-//     glm::vec3(-4.0f,  2.0f, 2.0f),
-//     glm::vec3( 0.0f,  0.0f, -3.0f),
-// };
 const std::vector<glm::vec3> point_light_positions = {
-    glm::vec3( 8.0f, 8.0f,  8.0f),
-    glm::vec3( 8.0f, 8.0f, -8.0f),
-    glm::vec3(-8.0f, 8.0f,  8.0f),
-    glm::vec3(-8.0f, 8.0f, -8.0f),
+    glm::vec3( 9.0f, 9.0f,  9.0f),
+    glm::vec3( 9.0f, 9.0f, -9.0f),
+    glm::vec3(-9.0f, 9.0f,  9.0f),
+    glm::vec3(-9.0f, 9.0f, -9.0f),
+    glm::vec3( 9.0f, 9.0f,  0.0f),
+    glm::vec3( 0.0f, 9.0f,  9.0f),
+    glm::vec3(-9.0f, 9.0f,  0.0f),
+    glm::vec3( 0.0f, 9.0f, -9.0f),
+    glm::vec3( 0.0f, 9.0f,  0.0f),
 };
 
 const float point_light_scale_factor = 0.2f;

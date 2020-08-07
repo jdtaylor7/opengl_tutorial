@@ -47,7 +47,7 @@ struct Material
     float shininess;
 };
 
-#define NUM_POINT_LIGHTS 4
+#define NUM_POINT_LIGHTS 9
 
 in vec3 frag_pos;
 in vec3 normal_vec;
