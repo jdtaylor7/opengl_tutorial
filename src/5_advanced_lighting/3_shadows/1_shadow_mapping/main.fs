@@ -63,10 +63,10 @@ uniform sampler2D shadow_map;
 
 out vec4 frag_color;
 
-float calc_shadow(vec4 frag_pos)
+float calc_shadow(vec4 frag_pos_light_space_arg)
 {
     // Normalize perspective.
-    vec3 proj_coords = frag_pos.xyz / frag_pos.w;
+    vec3 proj_coords = frag_pos_light_space_arg.xyz / frag_pos_light_space_arg.w;
 
     // Transform from [-1, 1] to [0, 1].
     proj_coords = (proj_coords * 0.5f) + 0.5f;
@@ -78,7 +78,8 @@ float calc_shadow(vec4 frag_pos)
     // Check if current frag pos in shadow.
     float shadow = current_depth > closest_depth ? 1.0f : 0.0f;
 
-    return shadow;
+    // return shadow;
+    return closest_depth;
 }
 
 vec3 calc_dir_light(DirectionalLight light, vec3 normal, vec3 view_dir)
@@ -126,7 +127,10 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
     // Shadow.
     float shadow = calc_shadow(frag_pos_light_space);
 
-    return (ambient + (1.0f - shadow) * (diffuse + specular));
+    // return (ambient + (1.0f - shadow) * (diffuse + specular));
+    // return vec3(1.0f - shadow);
+    return vec3(shadow);
+    // return vec3(frag_pos_light_space);
 }
 
 vec3 calc_spotlight(Spotlight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
@@ -183,4 +187,7 @@ void main()
     // result += calc_spotlight(spotlight, normal, frag_pos, view_dir);
 
     frag_color = vec4(result, 1.0f);
+    // float depth_value = texture(shadow_map, tex_coords).r;
+    // frag_color = vec4(vec3(depth_value), 1.0f);
+    // frag_color = frag_pos_light_space;
 }

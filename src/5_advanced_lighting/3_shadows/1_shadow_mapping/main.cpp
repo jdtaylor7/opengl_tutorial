@@ -78,7 +78,7 @@ bool first_mouse = true;
 
 float fov = 45.0f;
 
-const glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
+const glm::vec3 model_pos(0.0f, 0.0f, 0.0f);
 
 /*
  * Light settings.
@@ -140,15 +140,11 @@ const float spotlight_outer_cutoff = 17.5f;  // Degrees
 const std::size_t shadow_width = 1024;
 const std::size_t shadow_height = 1024;
 
-// Light frustrum settings.
-float light_frustrum_near_plane = 1.0f;
-float light_frustrum_far_plane = 7.5f;
+// Light frustum settings.
+float light_frustrum_near_plane = 0.5f;
+float light_frustrum_far_plane = 20.0f;
 glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f,
     light_frustrum_near_plane, light_frustrum_far_plane);
-glm::mat4 light_view = glm::lookAt(
-    glm::vec3(-2.0f, 4.0f, -1.0f),
-    glm::vec3( 0.0f, 0.0f,  0.0f),
-    glm::vec3( 0.0f, 1.0f,  0.0f));
 
 /*
  * Declare objects.
@@ -293,6 +289,12 @@ void render_scene(Shader* shader)
     // Position properties.
     shader->set_vec3("view_pos", camera_pos);
 
+    // Set model matrix.
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, model_pos);
+    model = glm::scale(model, glm::vec3(model_settings.scale_factor));
+    shader->set_mat4fv("model", model);
+
     // Material properties.
     shader->set_float("material.shininess", 32.0f);
 
@@ -371,9 +373,6 @@ int main()
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Set up light frustrum.
-    glm::mat4 light_space_matrix = light_projection * light_view;
 
     /*
      * Create shader programs.
@@ -470,10 +469,14 @@ int main()
         /*
          * Generate depth buffer for shadows.
          */
+        // Set up light frustum.
+        glm::mat4 light_view = glm::lookAt(
+            point_light_positions[0], model_pos, camera_up);
+        glm::mat4 light_space_matrix = light_projection * light_view;
+
+        // Pass uniforms to shader.
         shadow_shader->use();
         shadow_shader->set_mat4fv("light_space_matrix", light_space_matrix);
-
-        // TODO: put light_projection and light_view here
 
         glViewport(0, 0, shadow_width, shadow_height);
         glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo);
@@ -484,39 +487,38 @@ int main()
         /*
          * Render.
          */
+        main_shader->use();
+
         // Reset viewport.
-        glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        // glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         // Color buffer.
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Initial MVP matrix definitions.
+        // Initial projection and view matrix definitions.
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
 
-        // Set view and projection matrices.
+        // Set view and projection matrices. Model matrix set per object in
+        // render_scene function.
         view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
         projection = glm::perspective(glm::radians(fov), SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
 
+        // Assign projection and view matrices.
+        // main_shader->set_mat4fv("projection", projection);
+        // main_shader->set_mat4fv("view", view);
+        main_shader->set_mat4fv("projection", light_projection);
+        main_shader->set_mat4fv("view", light_view);
+
         // Assign necessary shadow values for upcoming drawings.
-        main_shader->use();
         main_shader->set_float("shadow_map", depth_map);
-
-        // Set model matrix.
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f));
-        model = glm::scale(model, glm::vec3(model_settings.scale_factor));
-
-        // Assign MVP matrices.
-        main_shader->set_mat4fv("model", model);
-        main_shader->set_mat4fv("projection", projection);
-        main_shader->set_mat4fv("view", view);
 
         // Pass depth map to objects, to render shadows. Only need to pass to
         // room, since there aren't other objects to cast shadow on model.
         room->set_depth_map(depth_map);
+        model_object->set_depth_map(depth_map);
 
         // Render scene normally.
         render_scene(main_shader.get());

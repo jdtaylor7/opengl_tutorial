@@ -43,6 +43,8 @@ public:
     void init();
     void deinit();
     void draw(Shader* shader);
+
+    void set_depth_map(unsigned int);
 private:
     SceneLighting* sl;
 
@@ -53,6 +55,9 @@ private:
     unsigned int vao;
     unsigned int vbo;
     unsigned int ebo;
+
+    unsigned int depth_map;
+    bool depth_map_set = false;
 };
 
 void Mesh::init()
@@ -166,7 +171,8 @@ void Mesh::draw(Shader* shader)
     unsigned int diffuse_num = 1;
     unsigned int specular_num = 1;
 
-    for (std::size_t i = 0; i < textures.size(); i++)
+    std::size_t i = 0;
+    for (i = 0; i < textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
@@ -180,12 +186,26 @@ void Mesh::draw(Shader* shader)
 
         shader->set_float("material." + name + num, i);
     }
+
+    if (depth_map_set)
+    {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, depth_map);
+        shader->set_float("shadow_map", depth_map);
+    }
+
     // Draw mesh.
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);
+}
+
+void Mesh::set_depth_map(unsigned int texture_id)
+{
+    depth_map = texture_id;
+    depth_map_set = true;
 }
 
 #endif /* MESH_HPP */

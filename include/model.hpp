@@ -47,6 +47,8 @@ public:
     bool init();
     void deinit();
     void draw(Shader* shader);
+
+    void set_depth_map(unsigned int);
 private:
     SceneLighting* sl;
 
@@ -62,6 +64,9 @@ private:
     std::vector<Texture> load_material_textures(aiMaterial*,
         aiTextureType,
         std::string);
+
+    unsigned int depth_map;
+    bool depth_map_set = false;
 };
 
 bool Model::init()
@@ -80,8 +85,8 @@ void Model::draw(Shader* shader)
     if (!shader)
         std::cerr << "Model::draw: shader is NULL\n";
 
-    for (std::size_t i = 0; i < meshes.size(); i++)
-        meshes[i].draw(shader);
+    for (auto& mesh : meshes)
+        mesh.draw(shader);
 }
 
 bool Model::load_model()
@@ -228,6 +233,12 @@ std::vector<Texture> Model::load_material_textures(aiMaterial* material,
         }
     }
     return textures;
+}
+
+void Model::set_depth_map(unsigned int texture_id)
+{
+    for (auto& mesh : meshes)
+        mesh.set_depth_map(texture_id);
 }
 
 #endif /* MODEL_HPP */

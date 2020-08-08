@@ -224,7 +224,7 @@ void Room::draw(Shader* shader)
             std::cerr << "Room::draw: SceneLighting->Spotlight pointer is null.\n";
         }
 
-        // // Material properties.
+        // Material properties.
         // shader->set_float("material.shininess", 32.0f);
     }
     else
