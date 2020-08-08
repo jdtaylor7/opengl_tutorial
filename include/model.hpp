@@ -77,6 +77,9 @@ void Model::deinit()
 
 void Model::draw(Shader* shader)
 {
+    if (!shader)
+        std::cerr << "Model::draw: shader is NULL\n";
+
     for (std::size_t i = 0; i < meshes.size(); i++)
         meshes[i].draw(shader);
 }

@@ -150,6 +150,34 @@ glm::mat4 light_view = glm::lookAt(
     glm::vec3( 0.0f, 0.0f,  0.0f),
     glm::vec3( 0.0f, 1.0f,  0.0f));
 
+/*
+ * Declare objects.
+ */
+/*
+ * Lights.
+ */
+// Directional lights.
+std::unique_ptr<DirectionalLight> directional_light;
+
+// Point lights.
+std::vector<std::shared_ptr<PointLight>> point_lights;
+
+// Spotlight.
+std::unique_ptr<Spotlight> spotlight;
+
+// Scene lighting.
+std::unique_ptr<SceneLighting> scene_lighting;
+
+/*
+ * Room.
+ */
+std::unique_ptr<Room> room;
+
+/*
+ * Model.
+ */
+std::unique_ptr<Model> model_object;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -233,7 +261,48 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void render_scene(Shader* shader)
 {
+    if (!shader)
+    {
+        std::cerr << "main::render_scene: shader is NULL\n";
+        return;
+    }
+    /*
+     * Draw room.
+     */
+    shader->use();
 
+    // Position properties.
+    shader->set_vec3("view_pos", camera_pos);
+
+    // Material properties.
+    shader->set_float("material.shininess", 32.0f);
+
+    // Render room.
+    if (!room)
+    {
+        std::cerr << "main::render_scene: room is NULL\n";
+        return;
+    }
+    room->draw(shader);
+
+    /*
+     * Draw model.
+     */
+    shader->use();
+
+    // Position properties.
+    shader->set_vec3("view_pos", camera_pos);
+
+    // Material properties.
+    shader->set_float("material.shininess", 32.0f);
+
+    // Render model.
+    if (!model_object)
+    {
+        std::cerr << "main::render_scene: model_object is NULL\n";
+        return;
+    }
+    model_object->draw(shader);
 }
 
 int main()
@@ -252,7 +321,7 @@ int main()
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello Triangle", NULL, NULL);
     if (!window)
     {
-        std::cout << "Failed to create GLFW window\n";
+        std::cerr << "Failed to create GLFW window\n";
         glfwTerminate();
         return -1;
     }
@@ -267,7 +336,7 @@ int main()
      */
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cout << "Failed to initialize GLAD\n";
+        std::cerr << "Failed to initialize GLAD\n";
         return -1;
     }
 
@@ -317,7 +386,7 @@ int main()
      * Initialize lights.
      */
     // Directional lights.
-    auto directional_light = std::make_unique<DirectionalLight>(
+    directional_light = std::make_unique<DirectionalLight>(
         directional_light_direction,
         directional_light_ambient_intensity,
         diffuse_light_intensity,
@@ -325,7 +394,6 @@ int main()
 
     // Point lights.
     assert(point_light_positions.size() == point_light_colors.size());
-    std::vector<std::shared_ptr<PointLight>> point_lights;
     for (std::size_t i = 0; i < point_light_positions.size(); i++)
     {
         auto point_light = std::make_shared<PointLight>(
@@ -343,7 +411,7 @@ int main()
     }
 
     // Spotlight.
-    auto spotlight = std::make_unique<Spotlight>(
+    spotlight = std::make_unique<Spotlight>(
         spotlight_position,
         spotlight_direction,
         spotlight_inner_cutoff,
@@ -356,7 +424,7 @@ int main()
         light_attenuation_quadratic);
 
     // Scene lighting.
-    auto scene_lighting = std::make_unique<SceneLighting>(
+    scene_lighting = std::make_unique<SceneLighting>(
         directional_light.get(),
         point_lights,
         spotlight.get());
@@ -364,8 +432,7 @@ int main()
     /*
      * Initialize room.
      */
-    Room room(main_shader.get(),
-        floor_diffuse_path,
+    room = std::make_unique<Room>(floor_diffuse_path,
         floor_specular_path,
         ceiling_diffuse_path,
         ceiling_specular_path,
@@ -373,16 +440,15 @@ int main()
         wall_specular_path,
         scene_lighting.get(),
         room_scale_factor);
-    room.init();
+    room->init();
 
     /*
      * Initialize model.
      */
-    Model model_object(model_obj_path,
+    model_object = std::make_unique<Model>(model_obj_path,
         model_settings.flip_textures,
-        main_shader.get(),
         scene_lighting.get());
-    model_object.init();
+    model_object->init();
 
     /*
      * Render loop.
@@ -407,10 +473,12 @@ int main()
         shadow_shader->use();
         shadow_shader->set_mat4fv("light_space_matrix", light_space_matrix);
 
+        // TODO: put light_projection and light_view here
+
         glViewport(0, 0, shadow_width, shadow_height);
         glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo);
         glClear(GL_DEPTH_BUFFER_BIT);
-        // RenderScene(shadow_shader.get());
+        render_scene(shadow_shader.get());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         /*
@@ -431,6 +499,27 @@ int main()
         // Set view and projection matrices.
         view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
         projection = glm::perspective(glm::radians(fov), SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
+
+        // Assign necessary shadow values for upcoming drawings.
+        main_shader->use();
+        main_shader->set_float("shadow_map", depth_map);
+
+        // Set model matrix.
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f));
+        model = glm::scale(model, glm::vec3(model_settings.scale_factor));
+
+        // Assign MVP matrices.
+        main_shader->set_mat4fv("model", model);
+        main_shader->set_mat4fv("projection", projection);
+        main_shader->set_mat4fv("view", view);
+
+        // Pass depth map to objects, to render shadows. Only need to pass to
+        // room, since there aren't other objects to cast shadow on model.
+        room->set_depth_map(depth_map);
+
+        // Render scene normally.
+        render_scene(main_shader.get());
 
         /*
          * Draw point lights.
@@ -453,52 +542,6 @@ int main()
         }
 
         /*
-         * Assign necessary shadow values for upcoming drawings.
-         */
-        main_shader->use();
-        main_shader->set_float("shadow_map", depth_map);
-
-        /*
-         * Draw floor.
-         */
-        main_shader->use();
-
-        // Position properties.
-        main_shader->set_vec3("view_pos", camera_pos);
-
-        // Material properties.
-        main_shader->set_float("material.shininess", 32.0f);
-
-        // Set view and projection matrices,
-        main_shader->set_mat4fv("projection", projection);
-        main_shader->set_mat4fv("view", view);
-
-        room.draw();
-
-        /*
-         * Draw model.
-         */
-        main_shader->use();
-
-        // Set model matrix.
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f));
-        model = glm::scale(model, glm::vec3(model_settings.scale_factor));
-
-        // Position properties.
-        main_shader->set_vec3("view_pos", camera_pos);
-
-        // Material properties.
-        main_shader->set_float("material.shininess", 32.0f);
-
-        // Render backpack.
-        main_shader->set_mat4fv("projection", projection);
-        main_shader->set_mat4fv("view", view);
-        main_shader->set_mat4fv("model", model);
-
-        model_object.draw();
-
-        /*
          * Swap buffers and poll I/O events.
          */
         glfwSwapBuffers(window);
@@ -508,10 +551,10 @@ int main()
     /*
      * Clean up.
      */
-    model_object.deinit();
+    model_object->deinit();
     for (auto& point_light : point_lights)
         point_light->deinit();
-    room.deinit();
+    room->deinit();
 
     glfwTerminate();
     return 0;

@@ -83,6 +83,8 @@ public:
     void init();
     void deinit();
     void draw(Shader* shader);
+
+    void set_depth_map(unsigned int);
 private:
     std::filesystem::path floor_diffuse_texture_path;
     std::filesystem::path floor_specular_texture_path;
@@ -105,6 +107,9 @@ private:
     SceneLighting* sl;
 
     float scale_factor;
+
+    unsigned int depth_map;
+    bool depth_map_set = false;
 };
 
 void Room::init()
@@ -151,6 +156,9 @@ void Room::deinit()
 
 void Room::draw(Shader* shader)
 {
+    if (!shader)
+        std::cerr << "Room::draw: shader is NULL\n";
+
     /*
      * Set shader attributes.
      */
@@ -255,6 +263,12 @@ void Room::draw(Shader* shader)
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, floor_specular_texture);
     shader->set_float("material.texture_specular1", floor_specular_texture);
+    if (depth_map_set)
+    {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, depth_map);
+        shader->set_float("shadow_map", depth_map);
+    }
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -331,6 +345,12 @@ void Room::draw(Shader* shader)
     }
 
     glBindVertexArray(0);
+}
+
+void Room::set_depth_map(unsigned int texture_id)
+{
+    depth_map = texture_id;
+    depth_map_set = true;
 }
 
 #endif /* ROOM_HPP */
