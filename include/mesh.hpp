@@ -96,12 +96,6 @@ void Mesh::deinit()
 
 void Mesh::draw(Shader* shader)
 {
-    if (!shader)
-    {
-        std::cerr << "Mesh::draw: shader is NULL\n";
-        return;
-    }
-
     // Set shader attributes.
     if (!shader)
     {

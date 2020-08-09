@@ -78,8 +78,8 @@ float calc_shadow(vec4 frag_pos_light_space_arg)
     // Check if current frag pos in shadow.
     float shadow = current_depth > closest_depth ? 1.0f : 0.0f;
 
-    // return shadow;
-    return closest_depth;
+    return shadow;
+    // return closest_depth;
 }
 
 vec3 calc_dir_light(DirectionalLight light, vec3 normal, vec3 view_dir)
@@ -127,9 +127,9 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
     // Shadow.
     float shadow = calc_shadow(frag_pos_light_space);
 
-    // return (ambient + (1.0f - shadow) * (diffuse + specular));
+    return (ambient + (1.0f - shadow) * (diffuse + specular));
     // return vec3(1.0f - shadow);
-    return vec3(shadow);
+    // return vec3(shadow);
     // return vec3(frag_pos_light_space);
 }
 
@@ -186,8 +186,16 @@ void main()
     // Spotlight.
     // result += calc_spotlight(spotlight, normal, frag_pos, view_dir);
 
-    frag_color = vec4(result, 1.0f);
+    // frag_color = vec4(result, 1.0f);
     // float depth_value = texture(shadow_map, tex_coords).r;
     // frag_color = vec4(vec3(depth_value), 1.0f);
     // frag_color = frag_pos_light_space;
+    // frag_color = vec4(vec3(gl_FragCoord.z), 1.0f);
+
+    // Visualize automatically-generated depth buffer.
+    float near = 0.1f;
+    float far = 100.0f;
+    float z = gl_FragCoord.z * 2.0f - 1.0f;
+    float depth = ((2.0f * near * far) / (far + near - z * (far - near))) / far;
+    frag_color = vec4(vec3(depth), 1.0f);
 }
