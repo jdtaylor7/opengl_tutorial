@@ -11,3 +11,6 @@ bazel-*
 
 # Sourcetrail files.
 *.srctrl*
+
+# Tags files.
+.tags*
