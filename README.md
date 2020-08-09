@@ -1,7 +1,7 @@
 Learning how to use OpenGL! Following the LearnOpenGL tutorial
 [here](https://learnopengl.com/).
 
-# Dependencies
+## Dependencies
 
 ### Linux
 
@@ -35,7 +35,7 @@ Build and install with CMake:
 ##### Installing Assimp
 
 
-# Building
+## Building
 
 ### Platform-agnostic
 
@@ -43,7 +43,7 @@ Run the build script:
 
 `./build.sh`
 
-# Running
+## Running
 
 ### Linux
 
