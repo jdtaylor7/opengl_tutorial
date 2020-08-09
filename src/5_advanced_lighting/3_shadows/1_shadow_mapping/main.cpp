@@ -499,71 +499,70 @@ int main()
         render_scene(shadow_shader.get());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // /*
-        //  * Render.
-        //  */
-        // main_shader->use();
-        //
+        /*
+         * Render.
+         */
+        main_shader->use();
+
         // Reset viewport.
         glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         // Color buffer.
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //
-        // // Initial projection and view matrix definitions.
-        // glm::mat4 model = glm::mat4(1.0f);
-        // glm::mat4 view = glm::mat4(1.0f);
-        // glm::mat4 projection = glm::mat4(1.0f);
-        //
-        // // Set view and projection matrices. Model matrix set per object in
-        // // render_scene function.
-        // view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-        // projection = glm::perspective(glm::radians(fov), SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
-        //
-        // // Assign projection and view matrices.
-        // main_shader->set_mat4fv("projection", projection);
-        // main_shader->set_mat4fv("view", view);
-        // // main_shader->set_mat4fv("projection", light_projection);
-        // // main_shader->set_mat4fv("view", light_view);
-        //
-        // // Assign necessary shadow values for upcoming drawings.
-        // main_shader->set_float("shadow_map", depth_map);
-        //
-        // // Pass depth map to objects, to render shadows. Only need to pass to
-        // // room, since there aren't other objects to cast shadow on model.
-        // room->set_depth_map(depth_map);
-        // model_object->set_depth_map(depth_map);
-        //
-        // // Render scene normally.
-        // render_scene(main_shader.get());
 
-        // /*
-        //  * Draw point lights.
-        //  */
-        // plight_shader->use();
-        //
-        // // Set MVP matrices.
-        // plight_shader->set_mat4fv("projection", projection);
-        // plight_shader->set_mat4fv("view", view);
-        //
-        // // Render point light.
-        // for (auto& point_light : point_lights)
-        // {
-        //     model = glm::mat4(1.0f);
-        //     model = glm::translate(model, point_light->position);
-        //     model = glm::scale(model, glm::vec3(point_light->scale_factor));
-        //     plight_shader->set_mat4fv("model", model);
-        //     plight_shader->set_vec3("color", point_light->color);
-        //     point_light->draw();
-        // }
+        // Initial projection and view matrix definitions.
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
 
-        // Render quad. TODO for testing only.
-        quad_shader->use();
-        quad_shader->set_float("near_plane", light_frustum_near_plane);
-        quad_shader->set_float("far_plane", light_frustum_far_plane);
-        quad->set_depth_map(depth_map);
-        quad->draw(quad_shader.get());
+        // Set view and projection matrices. Model matrix set per object in
+        // render_scene function.
+        view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
+        projection = glm::perspective(glm::radians(fov), SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
+
+        // Assign projection and view matrices.
+        main_shader->set_mat4fv("projection", projection);
+        main_shader->set_mat4fv("view", view);
+        // main_shader->set_mat4fv("projection", light_projection);
+        // main_shader->set_mat4fv("view", light_view);
+
+        // Assign necessary shadow values for upcoming drawings.
+        main_shader->set_float("shadow_map", depth_map);
+
+        // Pass depth map to objects, to render shadows.
+        room->set_depth_map(depth_map);
+        model_object->set_depth_map(depth_map);
+
+        // Render scene normally.
+        render_scene(main_shader.get());
+
+        /*
+         * Draw point lights.
+         */
+        plight_shader->use();
+
+        // Set MVP matrices.
+        plight_shader->set_mat4fv("projection", projection);
+        plight_shader->set_mat4fv("view", view);
+
+        // Render point light.
+        for (auto& point_light : point_lights)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, point_light->position);
+            model = glm::scale(model, glm::vec3(point_light->scale_factor));
+            plight_shader->set_mat4fv("model", model);
+            plight_shader->set_vec3("color", point_light->color);
+            point_light->draw();
+        }
+
+        // // Render quad. TODO for testing only.
+        // quad_shader->use();
+        // quad_shader->set_float("near_plane", light_frustum_near_plane);
+        // quad_shader->set_float("far_plane", light_frustum_far_plane);
+        // quad->set_depth_map(depth_map);
+        // quad->draw(quad_shader.get());
 
         /*
          * Swap buffers and poll I/O events.
