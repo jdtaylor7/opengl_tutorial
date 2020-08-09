@@ -1,10 +1,11 @@
-Learning how to use OpenGL! Following the LearnOpenGL tutorial
+Learning how to use OpenGL. Following the LearnOpenGL tutorial
 [here](https://learnopengl.com/).
 
 ## Dependencies
 
 ### Linux
 
+**TODO: add**
 
 ### Cygwin
 
@@ -19,9 +20,7 @@ Learning how to use OpenGL! Following the LearnOpenGL tutorial
 * xorg-server
 * xinit
 
-##### Installing GLFW
-
-Build and install with CMake:
+##### Installing GLFW with CMake
 
 * Download GLFW source code: `git clone https://github.com/glfw/glfw`
 * Create build directory: `mkdir <install_dir>` (I used `/usr/lib/glfw`)
@@ -32,8 +31,9 @@ Build and install with CMake:
 * `make glfw`
 * `make install`
 
-##### Installing Assimp
+##### Installing Assimp with CMake
 
+**TODO: add**
 
 ## Building
 
