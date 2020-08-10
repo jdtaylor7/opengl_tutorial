@@ -75,11 +75,11 @@ float calc_shadow(vec3 normal, vec3 light_dir)
     float closest_depth = texture(shadow_map, proj_coords.xy).r;
     float current_depth = proj_coords.z;
 
-    // Check if current frag pos in shadow.
-    float shadow_bias = 0.005f;
-    // float shadow_bias = max(0.05f * (1.0f - dot(normal, light_dir)), 0.005f);
+    // Provide bias to shadow calculations to remove shadow acne.
+    float shadow_bias = 0.0005f;
 
-    // Implement PCF by averaging surrounding texels.
+    // Calculate whether fragment is in shadow. Implement PCF by averaging
+    // surrounding texels.
     float shadow = 0.0f;
     vec2 texel_size = 1.0f / textureSize(shadow_map, 0);
     for (int x = -2; x <= 2; ++x)

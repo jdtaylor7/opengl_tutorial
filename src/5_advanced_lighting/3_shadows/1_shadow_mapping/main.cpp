@@ -147,7 +147,7 @@ const std::size_t shadow_height = 4096;
 
 // Light frustum settings.
 float light_frustum_near_plane = 0.1f;
-float light_frustum_far_plane = 20.0f;
+float light_frustum_far_plane = 30.0f;
 float light_fov = 90.0f;
 glm::mat4 light_projection = glm::perspective(
     glm::radians(light_fov),
@@ -231,9 +231,9 @@ void process_input(GLFWwindow* window)
 
     // Move drone up/down.
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        model_pos.y += 0.05;
+        model_pos.y += camera_speed * 1.0f;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        model_pos.y -= 0.05;
+        model_pos.y -= camera_speed * 1.0f;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -500,11 +500,11 @@ int main()
         /*
          * Generate depth buffer for shadows.
          */
-        // Set up light frustum. This part is a bit of a hack since we're
-        // pretending a point light is a directional light (by using a lookAt
-        // matrix which always looks at the model). This is fine since we only
-        // have one model in the scene. It also means we can use shadow mapping
-        // instead of point shadows, which is simpler.
+        // Set up light perspective matrix. This part is a bit of a hack since
+        // we're pretending a point light is a directional light (by using a
+        // lookAt matrix which always looks at the model). This is fine since we
+        // only have one model in the scene. It also means we can use shadow
+        // mapping instead of point shadows, which is simpler.
         glm::mat4 light_view = glm::lookAt(
             point_light_positions[0], model_pos, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 light_space_matrix = light_projection * light_view;
