@@ -15,9 +15,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 # Add packages.
 set(CMAKE_PREFIX_PATH /usr/lib/glfw)
-find_package(OpenGL REQUIRED)
-find_package(glfw3 3.3 REQUIRED)
-find_package(ASSIMP REQUIRED)
+find_package(OpenGL CONFIG REQUIRED)
+find_package(glfw3 3.3 CONFIG REQUIRED)
+find_package(ASSIMP CONFIG REQUIRED)
 
 # Add include directories.
 include_directories(
@@ -38,7 +38,6 @@ link_directories(
 # Add compiler/linker options.
 set(CXXOPTS "-O2")
 set(LINKOPTS "-Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11")
-# set(LINKOPTS "-Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11 -lassimp")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXOPTS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKOPTS}")
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")

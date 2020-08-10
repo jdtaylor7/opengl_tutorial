@@ -23,13 +23,16 @@ Learning how to use OpenGL. Following the LearnOpenGL tutorial
 ##### Installing GLFW with CMake
 
 * Download GLFW source code: `git clone https://github.com/glfw/glfw`
-* Create build directory: `mkdir <install_dir>` (I used `/usr/lib/glfw`)
-* In root directory: `cmake -B build -DCMAKE_INSTALL_PREFIX=<install_dir>
--DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF
--DBUILD_SHARED_LIBS=OFF`
-* `cd build`
-* `make glfw`
-* `make install`
+* Create system install directory: `mkdir <install_dir>` (I used
+`/usr/lib/glfw`)
+* Create local build directory: `mkdir build`
+* Configure project (in project root directory): `cmake -B build
+-DCMAKE_INSTALL_PREFIX=<install_dir> -DGLFW_BUILD_DOCS=OFF
+-DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF`
+* Build and install library:
+    * `cd build`
+    * `make glfw`
+    * `make install`
 
 ##### Installing Assimp with CMake
 
