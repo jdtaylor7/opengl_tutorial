@@ -110,7 +110,8 @@ const std::vector<glm::vec3> point_light_colors{
     // glm::vec3(1.0f, 1.0f, 1.0f),
     // glm::vec3(1.0f, 1.0f, 1.0f),
     // glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
+    // glm::vec3(1.0f, 0.875f, 0.0f),
+    glm::vec3(0.529f, 0.808f, 0.922f),
 };
 
 const std::vector<glm::vec3> point_light_positions = {
@@ -123,7 +124,8 @@ const std::vector<glm::vec3> point_light_positions = {
     // glm::vec3(-9.0f, 9.0f,  0.0f),
     // glm::vec3( 0.0f, 9.0f, -9.0f),
     // glm::vec3( 0.0f, 9.0f,  0.0f),
-    glm::vec3( -4.0f, 2.0f, -2.0f),
+    // glm::vec3( -4.0f, 2.0f, -2.0f),
+    glm::vec3( -2.0f, 4.0f, 0.0f),
 };
 
 const float point_light_scale_factor = 0.2f;
@@ -140,16 +142,18 @@ const float spotlight_outer_cutoff = 17.5f;  // Degrees
  * Shadow settings.
  */
 // Depth map resolution.
-// const std::size_t shadow_width = 1024;
-// const std::size_t shadow_height = 1024;
 const std::size_t shadow_width = 4096;
 const std::size_t shadow_height = 4096;
 
 // Light frustum settings.
-float light_frustum_near_plane = 0.5f;
+float light_frustum_near_plane = 0.1f;
 float light_frustum_far_plane = 20.0f;
-glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f,
-    light_frustum_near_plane, light_frustum_far_plane);
+float light_fov = 90.0f;
+glm::mat4 light_projection = glm::perspective(
+    glm::radians(light_fov),
+    float(shadow_width / shadow_height),
+    light_frustum_near_plane,
+    light_frustum_far_plane);
 
 /*
  * Declare objects.
@@ -502,7 +506,7 @@ int main()
         // have one model in the scene. It also means we can use shadow mapping
         // instead of point shadows, which is simpler.
         glm::mat4 light_view = glm::lookAt(
-            point_light_positions[0], model_pos, camera_up);
+            point_light_positions[0], model_pos, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 light_space_matrix = light_projection * light_view;
 
         // Pass uniforms to shader.

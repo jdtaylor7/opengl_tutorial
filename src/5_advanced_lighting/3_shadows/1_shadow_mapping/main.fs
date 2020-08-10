@@ -68,7 +68,7 @@ float calc_shadow(vec3 normal, vec3 light_dir)
     // Normalize perspective.
     vec3 proj_coords = frag_pos_light_space.xyz / frag_pos_light_space.w;
 
-    // transform from [-1, 1] to [0, 1].
+    // Transform from clip space ([-1, 1]) to screen space ([0, 1]).
     proj_coords = (proj_coords * 0.5f) + 0.5f;
 
     // Compute closest and current depths.
@@ -76,7 +76,8 @@ float calc_shadow(vec3 normal, vec3 light_dir)
     float current_depth = proj_coords.z;
 
     // Check if current frag pos in shadow.
-    float shadow_bias = max(0.05f * (1.0f - dot(normal, light_dir)), 0.005f);
+    float shadow_bias = 0.005f;
+    // float shadow_bias = max(0.05f * (1.0f - dot(normal, light_dir)), 0.005f);
 
     // Implement PCF by averaging surrounding texels.
     float shadow = 0.0f;
