@@ -166,6 +166,13 @@ void Room::draw(Shader* shader)
     shader->set_int("material.texture_specular1", 1);
     shader->set_int("shadow_map", 2);
 
+    // Set depth map for room if possible.
+    if (depth_map_set)
+    {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, depth_map);
+    }
+
     /*
      * Set shader attributes.
      */
@@ -266,11 +273,6 @@ void Room::draw(Shader* shader)
     glBindTexture(GL_TEXTURE_2D, floor_diffuse_texture);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, floor_specular_texture);
-    if (depth_map_set)
-    {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, depth_map);
-    }
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);

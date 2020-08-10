@@ -63,7 +63,7 @@ uniform sampler2D shadow_map;
 
 out vec4 frag_color;
 
-float calc_shadow()
+float calc_shadow(vec3 normal, vec3 light_dir)
 {
     // Normalize perspective.
     vec3 proj_coords = frag_pos_light_space.xyz / frag_pos_light_space.w;
@@ -76,7 +76,23 @@ float calc_shadow()
     float current_depth = proj_coords.z;
 
     // Check if current frag pos in shadow.
-    float shadow = current_depth > closest_depth ? 1.0f : 0.0f;
+    float shadow_bias = max(0.05f * (1.0f - dot(normal, light_dir)), 0.005f);
+
+    // Implement PCF by averaging surrounding texels.
+    float shadow = 0.0f;
+    vec2 texel_size = 1.0f / textureSize(shadow_map, 0);
+    for (int x = -2; x <= 2; ++x)
+    {
+        for (int y = -2; y <= 2; ++y)
+        {
+            float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r;
+            shadow += current_depth - shadow_bias > pcf_depth ? 0.1f : 0.0f;
+        }
+    }
+
+    // Remove shadows outside of light frustum.
+    if (proj_coords.z > 1.0f)
+        shadow = 0.0f;
 
     return shadow;
 }
@@ -124,7 +140,7 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
     specular *= attenuation;
 
     // Shadow.
-    float shadow = calc_shadow();
+    float shadow = calc_shadow(normal, light_dir);
 
     return (ambient + (1.0f - shadow) * (diffuse + specular));
 }

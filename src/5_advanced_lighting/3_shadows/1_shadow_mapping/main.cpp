@@ -380,8 +380,10 @@ int main()
         shadow_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    std::vector<float> border_color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color.data());
 
     // Attach depth texture as framebuffer's depth buffer.
     glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo);
@@ -494,7 +496,11 @@ int main()
         /*
          * Generate depth buffer for shadows.
          */
-        // Set up light frustum.
+        // Set up light frustum. This part is a bit of a hack since we're
+        // pretending a point light is a directional light (by using a lookAt
+        // matrix which always looks at the model). This is fine since we only
+        // have one model in the scene. It also means we can use shadow mapping
+        // instead of point shadows, which is simpler.
         glm::mat4 light_view = glm::lookAt(
             point_light_positions[0], model_pos, camera_up);
         glm::mat4 light_space_matrix = light_projection * light_view;
@@ -506,7 +512,12 @@ int main()
         glViewport(0, 0, shadow_width, shadow_height);
         glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo);
         glClear(GL_DEPTH_BUFFER_BIT);
+
+        // Render scene to shadow map. Cull front faces during to eliminate
+        // potential peter panning.
+        glCullFace(GL_FRONT);
         render_scene(shadow_shader.get());
+        glCullFace(GL_BACK);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         /*
