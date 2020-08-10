@@ -98,5 +98,8 @@ add_executable(multiple_lights src/2_lighting/6_multiple_lights/main.cpp)
 # Model loading.
 add_executable(model src/3_model_loading/main.cpp)
 
+# Advanced OpenGL.
+add_executable(anti_aliasing src/4_advanced_opengl/11_anti_aliasing/main.cpp)
+
 # Advanced lighting.
 add_executable(shadow_mapping src/5_advanced_lighting/3_shadows/1_shadow_mapping/main.cpp)
