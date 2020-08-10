@@ -127,7 +127,7 @@ const std::vector<glm::vec3> point_light_positions = {
     // glm::vec3( 0.0f, 9.0f, -9.0f),
     // glm::vec3( 0.0f, 9.0f,  0.0f),
     // glm::vec3( -4.0f, 2.0f, -2.0f),
-    glm::vec3( -2.0f, 4.0f, 0.0f),
+    glm::vec3( 1.5f, 3.5f, 0.0f),
 };
 
 const float point_light_scale_factor = 0.2f;
@@ -239,9 +239,9 @@ void process_input(GLFWwindow* window)
 
     // Toggle anti-aliasing.
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        anti_aliasing_toggle = true;
-    else if (glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE)
         anti_aliasing_toggle = false;
+    else if (glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE)
+        anti_aliasing_toggle = true;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -398,6 +398,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     std::vector<float> border_color = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color.data());
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     // Attach depth texture as framebuffer's depth buffer.
     glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo);
@@ -502,9 +503,19 @@ int main()
         std::cout << "anti_aliasing_toggle = " << anti_aliasing_toggle << '\n';
         // Toggle anti-aliasing.
         if (anti_aliasing_toggle)
+        {
+            // Enable AA.
             glEnable(GL_MULTISAMPLE);
+            main_shader->use();
+            main_shader->set_bool("smooth_shadows", true);
+        }
         else
+        {
+            // Disable AA.
             glDisable(GL_MULTISAMPLE);
+            main_shader->use();
+            main_shader->set_bool("smooth_shadows", false);
+        }
 
         /*
          * Input.

@@ -60,6 +60,7 @@ uniform PointLight point_lights[NUM_POINT_LIGHTS];
 uniform Spotlight spotlight;
 uniform Material material;
 uniform sampler2D shadow_map;
+uniform bool smooth_shadows;
 
 out vec4 frag_color;
 
@@ -81,14 +82,21 @@ float calc_shadow(vec3 normal, vec3 light_dir)
     // Calculate whether fragment is in shadow. Implement PCF by averaging
     // surrounding texels.
     float shadow = 0.0f;
-    vec2 texel_size = 1.0f / textureSize(shadow_map, 0);
-    for (int x = -2; x <= 2; ++x)
+    if (smooth_shadows)
     {
-        for (int y = -2; y <= 2; ++y)
+        vec2 texel_size = 1.0f / textureSize(shadow_map, 0);
+        for (int x = -2; x <= 2; ++x)
         {
-            float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r;
-            shadow += current_depth - shadow_bias > pcf_depth ? 0.1f : 0.0f;
+            for (int y = -2; y <= 2; ++y)
+            {
+                float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r;
+                shadow += current_depth - shadow_bias > pcf_depth ? 0.075f : 0.0f;
+            }
         }
+    }
+    else
+    {
+        shadow = current_depth - shadow_bias > closest_depth ? 1.0f : 0.0f;
     }
 
     // Remove shadows outside of light frustum.
