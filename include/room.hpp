@@ -161,6 +161,11 @@ void Room::draw(Shader* shader)
 
     shader->use();
 
+    // Set shader textures.
+    shader->set_int("material.texture_diffuse1", 0);
+    shader->set_int("material.texture_specular1", 1);
+    shader->set_int("shadow_map", 2);
+
     /*
      * Set shader attributes.
      */
@@ -257,26 +262,14 @@ void Room::draw(Shader* shader)
     shader->set_mat4fv("model", model);
 
     // Set textures.
-    // std::cout << "floor_diffuse_texture = " << floor_diffuse_texture << '\n';
-    // std::cout << "floor_specular_texture = " << floor_specular_texture << '\n';
-    // std::cout << "depth_map = " << depth_map << '\n';
-    // glActiveTexture(GL_TEXTURE0);
-    // glActiveTexture(GL_TEXTURE2);
-    glActiveTexture(GL_TEXTURE0 + floor_diffuse_texture);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, floor_diffuse_texture);
-    shader->set_float("material.texture_diffuse1", floor_diffuse_texture);
-    // glActiveTexture(GL_TEXTURE1);
-    // glActiveTexture(GL_TEXTURE3);
-    glActiveTexture(GL_TEXTURE0 + floor_specular_texture);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, floor_specular_texture);
-    shader->set_float("material.texture_specular1", floor_specular_texture);
     if (depth_map_set)
     {
-        // glActiveTexture(GL_TEXTURE2);
-        // glActiveTexture(GL_TEXTURE1);
-        glActiveTexture(GL_TEXTURE0 + depth_map);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, depth_map);
-        shader->set_float("shadow_map", depth_map);
     }
 
     glBindVertexArray(vao);
@@ -303,14 +296,10 @@ void Room::draw(Shader* shader)
     shader->set_mat4fv("model", model);
 
     // Set textures.
-    glActiveTexture(GL_TEXTURE0 + ceiling_diffuse_texture);
-    // std::cout << "ceiling_diffuse_texture = " << ceiling_diffuse_texture << '\n';
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, ceiling_diffuse_texture);
-    shader->set_float("material.texture_diffuse1", ceiling_diffuse_texture);
-    // glActiveTexture(GL_TEXTURE1);
-    glActiveTexture(GL_TEXTURE0 + ceiling_specular_texture);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, ceiling_specular_texture);
-    shader->set_float("material.texture_specular1", ceiling_specular_texture);
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -345,18 +334,10 @@ void Room::draw(Shader* shader)
         shader->set_mat4fv("model", model);
 
         // Set textures.
-        std::cout << "wall_diffuse_texture = " << wall_diffuse_texture << '\n';
-        // glActiveTexture(GL_TEXTURE6);
-        glActiveTexture(GL_TEXTURE0 + wall_diffuse_texture);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, wall_diffuse_texture);
-        // shader->set_float("material.texture_diffuse1", 6);
-        shader->set_float("material.texture_diffuse1", wall_diffuse_texture);
-        std::cout << "wall_specular_texture = " << wall_specular_texture << '\n';
-        // glActiveTexture(GL_TEXTURE7);
-        glActiveTexture(GL_TEXTURE0 + wall_specular_texture);
+        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, wall_specular_texture);
-        // shader->set_float("material.texture_specular1", 7);
-        shader->set_float("material.texture_specular1", wall_specular_texture);
 
         glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
     }

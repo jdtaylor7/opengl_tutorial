@@ -168,9 +168,7 @@ void Mesh::draw(Shader* shader)
     std::size_t i = 0;
     for (i = 0; i < textures.size(); i++)
     {
-        // glActiveTexture(GL_TEXTURE0 + i);
-        std::cout << "textures[" << i << "].id = " << textures[i].id << '\n';
-        glActiveTexture(GL_TEXTURE0 + textures[i].id);
+        glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
 
         std::string num;
@@ -180,25 +178,20 @@ void Mesh::draw(Shader* shader)
         else if (name == "texture_specular")
             num = std::to_string(specular_num++);
 
-        // shader->set_float("material." + name + num, i);
-        shader->set_float("material." + name + num, textures[i].id);
+        shader->set_int("material." + name + num, i);
     }
 
     if (depth_map_set)
     {
-        // glActiveTexture(GL_TEXTURE0 + i);
-        // glActiveTexture(GL_TEXTURE0);
-        glActiveTexture(GL_TEXTURE0 + depth_map);
+        glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, depth_map);
-        shader->set_float("shadow_map", depth_map);
+        shader->set_int("shadow_map", i);
     }
 
     // Draw mesh.
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-
-    // glActiveTexture(GL_TEXTURE0);
 }
 
 void Mesh::set_depth_map(unsigned int texture_id)

@@ -15,7 +15,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 # Add packages.
 set(CMAKE_PREFIX_PATH /usr/lib/glfw)
-find_package(OpenGL CONFIG REQUIRED)
+find_package(OpenGL REQUIRED)
 find_package(glfw3 3.3 CONFIG REQUIRED)
 find_package(ASSIMP CONFIG REQUIRED)
 

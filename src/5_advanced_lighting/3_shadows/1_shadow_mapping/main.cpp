@@ -301,9 +301,6 @@ void render_scene(Shader* shader)
     model = glm::scale(model, glm::vec3(model_settings.scale_factor));
     shader->set_mat4fv("model", model);
 
-    // Material properties.
-    shader->set_float("material.shininess", 32.0f);
-
     // Render model.
     if (!model_object)
     {
@@ -524,11 +521,9 @@ int main()
         // Assign projection and view matrices.
         main_shader->set_mat4fv("projection", projection);
         main_shader->set_mat4fv("view", view);
-        // main_shader->set_mat4fv("projection", light_projection);
-        // main_shader->set_mat4fv("view", light_view);
 
-        // Assign necessary shadow values for upcoming drawings.
-        main_shader->set_float("shadow_map", depth_map);
+        // Pass light space matrix to main shader.
+        main_shader->set_mat4fv("light_space_matrix", light_space_matrix);
 
         // Pass depth map to objects, to render shadows.
         room->set_depth_map(depth_map);

@@ -56,9 +56,9 @@ void Quad::draw(Shader* shader)
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * quad_vertices.size(), quad_vertices.data(), GL_STATIC_DRAW);
 
     // Bind textures.
-    glActiveTexture(GL_TEXTURE0 + depth_map);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, depth_map);
-    shader->set_float("depth_map", depth_map);
+    shader->set_int("depth_map", 0);
 
     // Render.
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

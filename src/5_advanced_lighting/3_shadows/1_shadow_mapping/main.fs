@@ -68,20 +68,17 @@ float calc_shadow()
     // Normalize perspective.
     vec3 proj_coords = frag_pos_light_space.xyz / frag_pos_light_space.w;
 
-    // Transform from [-1, 1] to [0, 1].
+    // transform from [-1, 1] to [0, 1].
     proj_coords = (proj_coords * 0.5f) + 0.5f;
 
-    // vec3 proj_coords = frag_pos_light_space_arg.xyz;
-
     // Compute closest and current depths.
-    float closest_depth = texture(shadow_map, proj_coords.xy).b;
+    float closest_depth = texture(shadow_map, proj_coords.xy).r;
     float current_depth = proj_coords.z;
 
     // Check if current frag pos in shadow.
     float shadow = current_depth > closest_depth ? 1.0f : 0.0f;
 
     return shadow;
-    // return closest_depth;
 }
 
 vec3 calc_dir_light(DirectionalLight light, vec3 normal, vec3 view_dir)
@@ -130,9 +127,6 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
     float shadow = calc_shadow();
 
     return (ambient + (1.0f - shadow) * (diffuse + specular));
-    // return vec3(1.0f - shadow);
-    // return vec3(shadow);
-    // return vec3(frag_pos_light_space);
 }
 
 vec3 calc_spotlight(Spotlight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
@@ -189,15 +183,4 @@ void main()
     // result += calc_spotlight(spotlight, normal, frag_pos, view_dir);
 
     frag_color = vec4(result, 1.0f);  // correct output
-    // float depth_value = texture(shadow_map, tex_coords).r;
-    // frag_color = vec4(vec3(depth_value), 1.0f);
-    // frag_color = frag_pos_light_space;
-    // frag_color = vec4(vec3(gl_FragCoord.z), 1.0f);
-
-    // // Visualize automatically-generated depth buffer.
-    // float near = 0.1f;
-    // float far = 100.0f;
-    // float z = gl_FragCoord.z * 2.0f - 1.0f;
-    // float depth = ((2.0f * near * far) / (far + near - z * (far - near))) / far;
-    // frag_color = vec4(vec3(depth), 1.0f);
 }
