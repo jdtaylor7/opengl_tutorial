@@ -81,7 +81,7 @@ bool first_mouse = true;
 
 float fov = 45.0f;
 
-const glm::vec3 model_pos(0.0f, 0.0f, 0.0f);
+glm::vec3 model_pos(0.0f, 0.0f, 0.0f);
 
 /*
  * Light settings.
@@ -140,8 +140,10 @@ const float spotlight_outer_cutoff = 17.5f;  // Degrees
  * Shadow settings.
  */
 // Depth map resolution.
-const std::size_t shadow_width = 1024;
-const std::size_t shadow_height = 1024;
+// const std::size_t shadow_width = 1024;
+// const std::size_t shadow_height = 1024;
+const std::size_t shadow_width = 4096;
+const std::size_t shadow_height = 4096;
 
 // Light frustum settings.
 float light_frustum_near_plane = 0.5f;
@@ -187,14 +189,17 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void process_input(GLFWwindow* window)
 {
+    // Exit application.
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // Camera speed modifier.
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         camera_speed = 5.0f * delta_time;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
         camera_speed = 2.5f * delta_time;
 
+    // Camera basic movement.
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera_pos += camera_speed * camera_front;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -204,11 +209,13 @@ void process_input(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
 
+    // Camera up/down.
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         camera_pos += camera_speed * camera_up;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         camera_pos -= camera_speed * camera_up;
 
+    // Print camera info to terminal.
     if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
     {
         std::cout << "camera_pos: " << camera_pos.x << ", " << camera_pos.y << ", " << camera_pos.z << '\n';
@@ -217,6 +224,12 @@ void process_input(GLFWwindow* window)
         std::cout << "pitch: " << pitch << '\n';
         std::cout << '\n';
     }
+
+    // Move drone up/down.
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        model_pos.y += 0.05;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        model_pos.y -= 0.05;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
