@@ -408,7 +408,7 @@ int main()
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cerr << "Framebuffer complete\n";
+        std::cerr << "main: Framebuffer incomplete\n";
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /*
