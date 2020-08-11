@@ -7,4 +7,4 @@ rm -rf ./build
 mkdir build && cd build
 
 cmake ..
-cmake --build . --target shadow_mapping
+cmake --build .

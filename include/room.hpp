@@ -320,8 +320,8 @@ void Room::draw(Shader* shader)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * square_indices.size(), square_indices.data(), GL_STATIC_DRAW);
 
     // Set model matrix.
-    assert(wall_translation_vec.size() += wall_rotation_angles.size());
-    assert(wall_translation_vec.size() += wall_rotation_axes.size());
+    assert(wall_translation_vecs.size() == wall_rotation_angles.size());
+    assert(wall_translation_vecs.size() == wall_rotation_axes.size());
     for (std::size_t i = 0; i < wall_translation_vecs.size(); i++)
     {
         model = glm::mat4(1.0f);
