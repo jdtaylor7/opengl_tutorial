@@ -207,5 +207,5 @@ void main()
     // Spotlight.
     // result += calc_spotlight(spotlight, normal, frag_pos, view_dir);
 
-    frag_color = vec4(result, 1.0f);  // correct output
+    frag_color = vec4(result, 1.0f);
 }

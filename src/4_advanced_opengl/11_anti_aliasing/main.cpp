@@ -502,7 +502,6 @@ int main()
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
-        std::cout << "anti_aliasing_toggle = " << anti_aliasing_toggle << '\n';
         // Toggle anti-aliasing.
         if (anti_aliasing_toggle)
         {
